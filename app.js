@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const connectDB = require("./config/database");
+const connectDB = require("./src/config/database");
 
 const app = express(); // Khởi tạo ứng dụng Express
 const PORT = process.env.PORT || 3000;
@@ -8,11 +8,6 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json()); // Parse JSON request body
-
-// Định tuyến (có thể import từ routes nếu có)
-app.get("/", (req, res) => {
-  res.send("Server is running!");
-});
 
 app.use("/", require("./src/routes"));
 
