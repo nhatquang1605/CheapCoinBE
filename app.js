@@ -1,9 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/config/database");
+const initRoute = require("./src/routes/index");
 
 const app = express(); // Khởi tạo ứng dụng Express
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 // Middleware
 app.use(cors());
@@ -13,6 +14,7 @@ app.use("/", require("./src/routes"));
 
 // Kết nối MongoDB
 connectDB();
+initRoute(app);
 
 // Chạy server
 app.listen(PORT, () => {
