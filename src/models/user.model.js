@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const COLLECTION_NAME = "Customers";
+const COLLECTION_NAME = "Users";
 
-const CustomerSchema = new mongoose.Schema(
+const UsersSchema = new mongoose.Schema(
   {
     FullName: {
       type: String,
@@ -16,15 +16,20 @@ const CustomerSchema = new mongoose.Schema(
       type: String,
       required: true,
     }, // Mã hóa mật khẩu khi lưu
+    Role: {
+      type: String,
+      enum: ["Admin", "Customer"],
+      required: true,
+    },
     PhoneNumber: {
       type: String,
     },
     Address: {
       type: String,
     },
-    JoinDate: {
-      type: Date,
-      default: Date.now,
+    IsActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -34,15 +39,15 @@ const CustomerSchema = new mongoose.Schema(
 );
 
 // Mã hóa mật khẩu trước khi lưu
-CustomerSchema.pre("save", async function (next) {
+UsersSchema.pre("save", async function (next) {
   if (!this.isModified("Password")) return next(); // Nếu Password không thay đổi
   this.Password = await bcrypt.hash(this.Password, 10); // Mã hóa
   next();
 });
 
 // Hàm so sánh mật khẩu khi đăng nhập
-CustomerSchema.methods.comparePassword = async function (inputPassword) {
+UsersSchema.methods.comparePassword = async function (inputPassword) {
   return await bcrypt.compare(inputPassword, this.Password);
 };
 
-module.exports = mongoose.model(COLLECTION_NAME, CustomerSchema);
+module.exports = mongoose.model(COLLECTION_NAME, UsersSchema);

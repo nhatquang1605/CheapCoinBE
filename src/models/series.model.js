@@ -14,13 +14,27 @@ const SeriesSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    SecretCharacter: {
-      type: Boolean,
-      default: false,
-    }, // Nếu có secret character
     TotalCharacters: {
       type: Number,
+      enum: [6, 12],
       required: true,
+    },
+    RepresentativeImageURL: {
+      type: String,
+    },
+    Size: {
+      type: String,
+    },
+    Material: {
+      type: String,
+    },
+    AgeToUse: {
+      type: String,
+    },
+    SecretCharacterID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Products",
+      default: null,
     },
   },
   {

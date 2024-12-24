@@ -1,17 +1,6 @@
 const mongoose = require("mongoose");
 const COLLECTION_NAME = "Products";
 
-const ImageSchema = new mongoose.Schema({
-  ImageURL: {
-    type: String,
-    required: true,
-  },
-  IsPrimary: {
-    type: Boolean,
-    default: false,
-  },
-});
-
 const ProductSchema = new mongoose.Schema(
   {
     ProductName: {
@@ -34,8 +23,17 @@ const ProductSchema = new mongoose.Schema(
       ref: "Series",
       required: true,
     },
-    IsSpecialEdition: { type: Boolean, default: false },
-    Images: [ImageSchema],
+    IsSpecialEdition: {
+      type: Boolean,
+      default: false,
+    },
+    ReleaseDate: {
+      type: Date,
+    },
+    IsNew: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
