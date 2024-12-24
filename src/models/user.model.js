@@ -3,31 +3,31 @@ const COLLECTION_NAME = "Users";
 
 const UsersSchema = new mongoose.Schema(
   {
-    FullName: {
+    fullName: {
       type: String,
       required: true,
     },
-    Email: {
+    email: {
       type: String,
       required: true,
       unique: true,
     },
-    Password: {
+    password: {
       type: String,
       required: true,
     }, // Mã hóa mật khẩu khi lưu
-    Role: {
+    role: {
       type: String,
       enum: ["Admin", "Customer"],
       required: true,
     },
-    PhoneNumber: {
+    phoneNumber: {
       type: String,
     },
-    Address: {
+    address: {
       type: String,
     },
-    IsActive: {
+    isActive: {
       type: Boolean,
       default: true,
     },

@@ -3,34 +3,30 @@ const COLLECTION_NAME = "Products";
 
 const ProductSchema = new mongoose.Schema(
   {
-    ProductName: {
+    productName: {
       type: String,
       required: true,
     },
-    Description: {
+    description: {
       type: String,
     },
-    Price: {
+    stockQuantity: {
       type: Number,
       required: true,
     },
-    StockQuantity: {
-      type: Number,
-      required: true,
-    },
-    SeriesID: {
+    seriesID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Series",
       required: true,
     },
-    IsSpecialEdition: {
+    isSpecialEdition: {
       type: Boolean,
       default: false,
     },
-    ReleaseDate: {
+    releaseDate: {
       type: Date,
     },
-    IsNew: {
+    isNew: {
       type: Boolean,
       default: false,
     },

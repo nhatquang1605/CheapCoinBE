@@ -2,19 +2,19 @@ const mongoose = require("mongoose");
 const COLLECTION_NAME = "Stories";
 
 const storySchema = new mongoose.Schema({
-  SeriesID: {
+  seriesID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Series",
     required: true,
   },
-  Title: {
+  title: {
     type: String,
     required: true,
   },
-  Content: {
+  content: {
     type: String,
   },
-  Author: {
+  author: {
     type: String,
   },
 });

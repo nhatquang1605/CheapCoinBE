@@ -1,40 +1,49 @@
+const { boolean } = require("joi");
 const mongoose = require("mongoose");
 const COLLECTION_NAME = "Series";
 
 const SeriesSchema = new mongoose.Schema(
   {
-    Name: {
+    name: {
       type: String,
       required: true,
     },
-    Description: {
+    description: {
       type: String,
     },
-    ReleaseDate: {
+    releaseDate: {
       type: Date,
       required: true,
     },
-    TotalCharacters: {
+    price: {
+      type: Number,
+      required: true,
+    },
+    totalCharacters: {
       type: Number,
       enum: [6, 12],
       required: true,
     },
-    RepresentativeImageURL: {
+    representativeImageURL: {
       type: String,
     },
-    Size: {
+    size: {
       type: String,
     },
-    Material: {
+    material: {
       type: String,
     },
-    AgeToUse: {
+    ageToUse: {
       type: String,
     },
-    SecretCharacterID: {
+    secretCharacterID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Products",
       default: null,
+    },
+    isAvailable: {
+      type: Boolean,
+      default: false,
     },
   },
   {

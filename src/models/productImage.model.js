@@ -2,16 +2,16 @@ const mongoose = require("mongoose");
 const COLLECTION_NAME = "ProductImages";
 
 const productImageSchema = new mongoose.Schema({
-  ProductID: {
+  productID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Products",
     required: true,
   },
-  ImageURL: {
+  imageURL: {
     type: String,
     required: true,
   },
-  IsPrimary: {
+  isPrimary: {
     type: Boolean,
     default: false,
   },

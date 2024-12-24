@@ -3,18 +3,18 @@ const COLLECTION_NAME = "Merchandises";
 
 const MerchandiseSchema = new mongoose.Schema(
   {
-    ProductName: {
+    productName: {
       type: String,
       required: true,
     },
-    Description: {
+    description: {
       type: String,
     },
-    Price: {
+    price: {
       type: Number,
       required: true,
     },
-    StockQuantity: {
+    stockQuantity: {
       type: Number,
       required: true,
     },

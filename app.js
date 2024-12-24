@@ -10,8 +10,6 @@ const PORT = process.env.PORT;
 app.use(cors());
 app.use(express.json()); // Parse JSON request body
 
-app.use("/", require("./src/routes"));
-
 // Kết nối MongoDB
 connectDB();
 initRoute(app);

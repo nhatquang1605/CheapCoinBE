@@ -3,14 +3,14 @@ const COLLECTION_NAME = "Orders";
 
 const OrderSchema = new mongoose.Schema(
   {
-    CustomerID: {
+    customerID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
       required: true,
     },
-    TotalAmount: { type: Number, required: true },
-    OrderDate: { type: Date, default: Date.now },
-    Status: {
+    totalAmount: { type: Number, required: true },
+    orderDate: { type: Date, default: Date.now },
+    status: {
       type: String,
       enum: ["Pending", "Shipped", "Completed", "Cancelled"],
       default: "Pending",
