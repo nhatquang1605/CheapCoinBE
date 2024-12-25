@@ -47,8 +47,13 @@ const createSeries = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const seriesList = await getAllSeries();
-    res.status(200).json({ success: true, data: seriesList });
+    const { page, limit, skip } = req.pagination; // Lấy thông tin phân trang từ middleware
+    const data = await getAllSeries(page, limit, skip);
+    res.status(200).json({
+      success: true,
+      message: "Lấy danh sách series thành công",
+      ...data,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

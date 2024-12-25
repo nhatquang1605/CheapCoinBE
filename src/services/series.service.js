@@ -10,13 +10,20 @@ const addSeries = async (data) => {
   }
 };
 
-const getAllSeries = async () => {
-  try {
-    const seriesList = await Series.find(); // Tìm tất cả các series
-    return seriesList;
-  } catch (error) {
-    throw new Error("Error fetching series list: " + error.message);
-  }
+const getAllSeries = async (page, limit, skip) => {
+  const total = await Series.countDocuments(); // Tổng số lượng series
+  const series = await Series.find()
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 }); // Sắp xếp theo thời gian tạo mới nhất
+
+  return {
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+    data: series,
+  };
 };
 
 const getSeriesById = async (id) => {
