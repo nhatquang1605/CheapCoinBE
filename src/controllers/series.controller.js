@@ -1,5 +1,9 @@
 const { date } = require("joi");
-const { addSeries } = require("../services/series.service");
+const {
+  addSeries,
+  getAllSeries,
+  getSeriesById,
+} = require("../services/series.service");
 
 const createSeries = async (req, res) => {
   try {
@@ -41,4 +45,23 @@ const createSeries = async (req, res) => {
   }
 };
 
-module.exports = { createSeries };
+const getAll = async (req, res) => {
+  try {
+    const seriesList = await getAllSeries();
+    res.status(200).json({ success: true, data: seriesList });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getById = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy ID từ params
+    const series = await getSeriesById(id);
+    res.status(200).json({ success: true, data: series });
+  } catch (error) {
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { createSeries, getAll, getById };

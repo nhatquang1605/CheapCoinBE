@@ -10,6 +10,7 @@ router.post(
   seriesValidation,
   seriesController.createSeries
 );
-router.get("/:id", seriesController);
+router.get("/:id", seriesController.getById);
+router.get("/", seriesController.getAll);
 
 module.exports = router;

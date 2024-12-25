@@ -10,4 +10,25 @@ const addSeries = async (data) => {
   }
 };
 
-module.exports = { addSeries };
+const getAllSeries = async () => {
+  try {
+    const seriesList = await Series.find(); // Tìm tất cả các series
+    return seriesList;
+  } catch (error) {
+    throw new Error("Error fetching series list: " + error.message);
+  }
+};
+
+const getSeriesById = async (id) => {
+  try {
+    const series = await Series.findById(id); // Tìm series theo ID
+    if (!series) {
+      throw new Error("Series not found");
+    }
+    return series;
+  } catch (error) {
+    throw new Error("Error fetching series by ID: " + error.message);
+  }
+};
+
+module.exports = { addSeries, getAllSeries, getSeriesById };
