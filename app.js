@@ -8,7 +8,8 @@ const PORT = process.env.PORT;
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Parse JSON request body
+app.use(express.json()); // Middleware xử lý JSON
+app.use(express.urlencoded({ extended: true })); // Middleware xử lý form-urlencoded
 
 // Kết nối MongoDB
 connectDB();

@@ -38,4 +38,31 @@ const getSeriesById = async (id) => {
   }
 };
 
-module.exports = { addSeries, getAllSeries, getSeriesById };
+const deleteSeriesById = async (id) => {
+  try {
+    const result = await Series.findByIdAndDelete(id);
+    return result; // Trả về null nếu không tìm thấy
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const updateSeriesById = async (id, updatedData) => {
+  try {
+    const result = await Series.findByIdAndUpdate(
+      id,
+      { $set: updatedData },
+      { new: true } // Trả về document sau khi cập nhật
+    );
+    return result; // Trả về null nếu không tìm thấy
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+module.exports = {
+  addSeries,
+  getAllSeries,
+  getSeriesById,
+  deleteSeriesById,
+  updateSeriesById,
+};
