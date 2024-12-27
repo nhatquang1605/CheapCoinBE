@@ -26,10 +26,6 @@ const ProductSchema = new mongoose.Schema(
     releaseDate: {
       type: Date,
     },
-    isNew: {
-      type: Boolean,
-      default: false,
-    },
   },
   {
     timestamps: true,

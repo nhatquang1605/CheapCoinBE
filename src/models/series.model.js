@@ -45,6 +45,10 @@ const SeriesSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isTagNew: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

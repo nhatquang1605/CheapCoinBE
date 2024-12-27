@@ -49,6 +49,7 @@ const createSeries = async (req, res) => {
 
     //add series to db
     const releaseDate = Date.now();
+    const isTagNew = true;
     const newSeries = await addSeries({
       name,
       description,
@@ -58,6 +59,7 @@ const createSeries = async (req, res) => {
       size,
       material,
       ageToUse,
+      isTagNew,
       representativeImageURL,
     });
 
