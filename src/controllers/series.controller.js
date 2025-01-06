@@ -6,10 +6,7 @@ const {
   deleteSeriesById,
   updateSeriesById,
 } = require("../services/series.service");
-const {
-  validateSeriesData,
-  validateSeriesUpdate,
-} = require("../validation/series.validation");
+const { validateSeriesData } = require("../validation/series.validation");
 const cloudinary = require("cloudinary").v2;
 const { extractPublicId } = require("../helper/cloudinaryHelper");
 
@@ -37,9 +34,8 @@ const createSeries = async (req, res) => {
     const { error } = validateSeriesData(req.body);
 
     if (error) {
-      if (req.file && req.file.path) {
-        const publicId = extractPublicId(req.file.path); // Hàm để lấy public_id từ URL Cloudinary
-        await cloudinary.uploader.destroy(publicId);
+      if (req.file) {
+        await Promise.all(req.files.map((file) => fs.unlink(file.path)));
       }
       return res.status(400).json({
         success: false,
@@ -130,11 +126,10 @@ const updateSeries = async (req, res) => {
     }
 
     //validate thông tin
-    const { error } = validateSeriesUpdate(req.body);
+    const { error } = validateSeriesData(req.body);
     if (error) {
       if (req.file && req.file.path) {
-        const publicId = extractPublicId(req.file.path); // Hàm để lấy public_id từ URL Cloudinary
-        await cloudinary.uploader.destroy(publicId);
+        await Promise.all(req.files.map((file) => fs.unlink(file.path)));
       }
       return res.status(400).json({
         success: false,

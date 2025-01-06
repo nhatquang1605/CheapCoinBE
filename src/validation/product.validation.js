@@ -20,17 +20,11 @@ const validateProductData = (data) => {
       "string.base": "SeriesID phải là chuỗi.",
       "any.required": "SeriesID là bắt buộc.",
     }),
-    images: Joi.array()
-      .items(Joi.string().uri())
-      .min(1)
-      .max(5)
-      .required()
-      .messages({
-        "array.min": "Bạn phải upload ít nhất 1 ảnh cho Product.",
-        "array.max": "Bạn chỉ được upload tối đa 5 ảnh cho Product.",
-        "any.required": "Images là trường bắt buộc.",
-        "string.uri": "Mỗi ảnh phải là một URL hợp lệ.",
-      }),
+    images: Joi.array().items(Joi.string()).min(1).max(5).required().messages({
+      "array.min": "Bạn phải upload ít nhất 1 ảnh cho Product.",
+      "array.max": "Bạn chỉ được upload tối đa 5 ảnh cho Product.",
+      "any.required": "Images là trường bắt buộc.",
+    }),
     isSpecialEdition: Joi.boolean().optional().messages({
       "boolean.base": "isSpecialEdition phải là giá trị boolean.",
     }),
@@ -42,4 +36,24 @@ const validateProductData = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-module.exports = { validateProductData };
+const validateProductDataUpdate = (data) => {
+  const productSchema = Joi.object({
+    productName: Joi.string().min(3).required().messages({
+      "string.min": "Product name must be at least 3 characters.",
+      "any.required": "Product name is required.",
+    }),
+    description: Joi.string().required().messages({
+      "any.required": "Description is required.",
+    }),
+    stockQuantity: Joi.number().min(0).required().messages({
+      "number.min": "Stock quantity must be a positive number.",
+      "any.required": "Stock quantity is required.",
+    }),
+    removedImages: Joi.array().items(Joi.string()).optional(),
+    images: Joi.array().items(Joi.string()).optional(),
+  });
+
+  return productSchema.validate(data, { abortEarly: false });
+};
+
+module.exports = { validateProductData, validateProductDataUpdate };

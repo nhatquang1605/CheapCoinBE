@@ -1,23 +1,39 @@
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
-// Cấu hình Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_KEY,
-  api_secret: process.env.CLOUDINARY_SECRET,
-});
+// Tạo thư mục tạm nếu chưa tồn tại
+const tempDir = path.join(__dirname, "../tmp");
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir);
+}
 
-// Tạo storage cho Multer sử dụng Cloudinary
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "CheapCoinProduct",
-    allowed_formats: ["jpeg", "png", "jpg"],
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, tempDir); // Lưu file tạm
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${
+      file.originalname
+    }`;
+    cb(null, uniqueSuffix);
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB mỗi file
+    files: 5, // Tối đa 5 file
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type. Only JPEG, PNG, and JPG are allowed."));
+    }
+  },
+});
 
 module.exports = upload;

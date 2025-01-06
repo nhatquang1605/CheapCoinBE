@@ -9,5 +9,9 @@ router.post(
   upload.array("images", 5),
   productController.createProduct
 );
+router.get("/", productController.getAll);
+router.get("/:id", productController.getById);
+router.put("/:id", productController.update);
+router.delete("/:id", productController.deleteProduct);
 
 module.exports = router;

@@ -15,7 +15,6 @@ const initRoute = (app) => {
   app.use("/api/v1/seri", seri);
   // app.use("/api/v1/story", story);
   // app.use("/api/v1/user", user);
-
   app.use(notFound);
 };
 

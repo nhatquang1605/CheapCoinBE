@@ -31,17 +31,4 @@ const validateSeriesData = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-const validateSeriesUpdate = (data) => {
-  const schema = Joi.object({
-    name: Joi.string().min(3).max(100).optional(),
-    description: Joi.string().max(500).optional(),
-    price: Joi.number().positive().optional(),
-    totalCharacters: Joi.number().valid(6, 12).integer().min(1).optional(),
-    IsAvailable: Joi.boolean().optional(),
-    secretCharacterID: Joi.string().optional(),
-  }).unknown(true);
-
-  return schema.validate(data, { abortEarly: false });
-};
-
-module.exports = { validateSeriesData, validateSeriesUpdate };
+module.exports = { validateSeriesData };
