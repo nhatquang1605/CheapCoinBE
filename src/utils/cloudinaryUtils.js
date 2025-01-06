@@ -8,20 +8,38 @@ cloudinary.config({
 });
 
 async function uploadFilesToCloudinary(files) {
-  const uploadResults = [];
-  for (const file of files) {
-    const uploadResult = await cloudinary.uploader.upload(file.path, {
-      folder: "CheapCoinProduct",
-    });
-    uploadResults.push({
-      public_id: uploadResult.public_id,
-      url: uploadResult.secure_url,
-    });
+  try {
+    const uploadResults = [];
 
-    // Xóa file tạm sau khi upload
-    await fs.unlink(file.path);
+    for (const file of files) {
+      // Upload file lên Cloudinary
+      const uploadResult = await cloudinary.uploader.upload(file.path, {
+        folder: "CheapCoinProduct",
+      });
+
+      // Push kết quả URL và public_id vào mảng
+      uploadResults.push({
+        public_id: uploadResult.public_id,
+        url: uploadResult.secure_url,
+      });
+
+      // Xóa file tạm sau khi upload
+      await fs.unlink(file.path);
+    }
+
+    // Trả về danh sách các URL của ảnh
+    return {
+      success: true,
+      data: uploadResults,
+    };
+  } catch (error) {
+    console.error("Error uploading files to Cloudinary:", error.message);
+
+    return {
+      success: false,
+      error: error.message,
+    };
   }
-  return uploadResults;
 }
 
 module.exports = { uploadFilesToCloudinary };

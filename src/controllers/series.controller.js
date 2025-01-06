@@ -7,8 +7,73 @@ const {
   updateSeriesById,
 } = require("../services/series.service");
 const { validateSeriesData } = require("../validation/series.validation");
+const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
 const cloudinary = require("cloudinary").v2;
 const { extractPublicId } = require("../helper/cloudinaryHelper");
+
+// const createSeries = async (req, res) => {
+//   try {
+//     const {
+//       name,
+//       price,
+//       description,
+//       totalCharacters,
+//       size,
+//       material,
+//       ageToUse,
+//     } = req.body;
+//     const representativeImageURL = req.file || null;
+
+//     //check representative is required
+//     if (!representativeImageURL) {
+//       return res
+//         .status(400)
+//         .json({ message: "Representative image is required" });
+//     }
+
+//     //validation from req.body
+//     const { error } = validateSeriesData(req.body);
+
+//     if (error) {
+//       if (req.file) {
+//         await Promise.all(req.file.map((file) => fs.unlink(file.path)));
+//       }
+//       return res.status(400).json({
+//         success: false,
+//         message: "Validation error",
+//         errors: error.details.map((err) => err.message),
+//       });
+//     }
+
+//     // Upload ảnh lên Cloudinary
+//     const uploadedFile = [];
+//     uploadedFile.push(req.file);
+//     const uploadedImages = await uploadFilesToCloudinary(uploadedFile);
+//     representativeImageURL = uploadedImages.url;
+
+//     //add series to db
+//     const releaseDate = Date.now();
+//     const isTagNew = true;
+//     const newSeries = await addSeries({
+//       name,
+//       description,
+//       price,
+//       releaseDate,
+//       totalCharacters,
+//       size,
+//       material,
+//       ageToUse,
+//       isTagNew,
+//       representativeImageURL,
+//     });
+
+//     res
+//       .status(201)
+//       .json({ message: "Series created successfully", series: newSeries });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 const createSeries = async (req, res) => {
   try {
@@ -21,22 +86,22 @@ const createSeries = async (req, res) => {
       material,
       ageToUse,
     } = req.body;
-    const representativeImageURL = req.file ? req.file.path : null;
 
-    //check representative is required
-    if (!representativeImageURL) {
+    const file = req.file; // Lấy file từ multer
+
+    // Kiểm tra xem file đại diện có tồn tại không
+    if (!file) {
       return res
         .status(400)
-        .json({ message: "Representative image is required" });
+        .json({ success: false, message: "Representative image is required" });
     }
 
-    //validation from req.body
+    // Validate dữ liệu từ req.body
     const { error } = validateSeriesData(req.body);
 
     if (error) {
-      if (req.file) {
-        await Promise.all(req.files.map((file) => fs.unlink(file.path)));
-      }
+      // Xóa file tạm nếu validate thất bại
+      await fs.unlink(file.path);
       return res.status(400).json({
         success: false,
         message: "Validation error",
@@ -44,9 +109,25 @@ const createSeries = async (req, res) => {
       });
     }
 
-    //add series to db
+    // Upload file lên Cloudinary
+    const uploadedImage = await uploadFilesToCloudinary([file]);
+
+    // Kiểm tra nếu upload thất bại
+    if (!uploadedImage.success || uploadedImage.data.length === 0) {
+      // Xóa file tạm trong trường hợp upload thất bại
+      await fs.unlink(file.path);
+      return res.status(500).json({
+        message: "Error uploading representative image to Cloudinary",
+      });
+    }
+
+    // Lấy URL từ Cloudinary
+    const representativeImageURL = uploadedImage.data[0].url;
+
+    // Tạo series mới và lưu vào database
     const releaseDate = Date.now();
     const isTagNew = true;
+
     const newSeries = await addSeries({
       name,
       description,
@@ -57,13 +138,14 @@ const createSeries = async (req, res) => {
       material,
       ageToUse,
       isTagNew,
-      representativeImageURL,
+      representativeImageURL, // Lưu URL từ Cloudinary
     });
 
     res
       .status(201)
       .json({ message: "Series created successfully", series: newSeries });
   } catch (error) {
+    console.error("Error creating series:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
