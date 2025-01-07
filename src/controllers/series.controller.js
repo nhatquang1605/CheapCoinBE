@@ -14,7 +14,7 @@ const { validateSeriesData } = require("../validation/series.validation");
 const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
 const cloudinary = require("cloudinary").v2;
 const { extractPublicId } = require("../helper/cloudinaryHelper");
-const fs = require("fs");
+const fs = require("fs").promises;
 
 const createSeries = async (req, res) => {
   try {
@@ -81,14 +81,11 @@ const createSeries = async (req, res) => {
       isTagNew,
       representativeImageURL, // Lưu URL từ Cloudinary
     });
-
-    // Xóa ảnh trong file tạm sau khi tạo series thành công
-    await fs.unlink(file.path);
     res
       .status(201)
       .json({ message: "Series created successfully", series: newSeries });
   } catch (error) {
-    console.error("Error creating series:", error.message);
+    console.error("Full error stack:", error.stack || error.message);
     res.status(500).json({ message: error.message });
   }
 };

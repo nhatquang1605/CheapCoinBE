@@ -3,8 +3,8 @@ const Series = require("../models/series.model");
 const addSeries = async (data) => {
   try {
     const series = new Series(data);
-    await series.save();
-    return series;
+    const savedSeries = await Series.create(data);
+    return savedSeries;
   } catch (error) {
     throw new Error(`Error creating series: ${error.message}`);
   }
