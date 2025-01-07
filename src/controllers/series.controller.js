@@ -116,8 +116,17 @@ const getById = async (req, res) => {
 
 const deleteSeries = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // Lấy ID từ params
+    const series = await getSeriesById(id);
+
+    // Xóa ảnh trên Cloudinary nếu tồn tại
+    if (series.representativeImageURL) {
+      const publicId = extractPublicId(series.representativeImageURL); // Hàm trích xuất public_id từ URL
+      await cloudinary.uploader.destroy(publicId); // Xóa ảnh trên Cloudinary
+    }
+
     const result = await deleteSeriesById(id);
+
     const deletedProduct = await getAllProductsBySeriesId(id);
 
     for (let i = 0; i < deletedProduct.length; i++) {
