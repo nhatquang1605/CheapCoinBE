@@ -3,10 +3,10 @@ const Series = require("../models/series.model");
 const addSeries = async (data) => {
   try {
     const series = new Series(data);
-    await series.save(series);
+    await series.save();
     return series;
   } catch (error) {
-    throw new Error("Error creating series: " + error.message);
+    throw new Error(`Error creating series: ${error.message}`);
   }
 };
 
@@ -59,10 +59,15 @@ const updateSeriesById = async (id, updatedData) => {
     throw new Error(error.message);
   }
 };
+
+const checkSeriesExistence = async (seriesID) => {
+  return await Series.exists({ _id: seriesID });
+};
 module.exports = {
   addSeries,
   getAllSeries,
   getSeriesById,
   deleteSeriesById,
   updateSeriesById,
+  checkSeriesExistence,
 };

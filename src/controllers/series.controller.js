@@ -6,74 +6,15 @@ const {
   deleteSeriesById,
   updateSeriesById,
 } = require("../services/series.service");
+const {
+  getAllProductsBySeriesId,
+  deleteProductById,
+} = require("../services/product.service");
 const { validateSeriesData } = require("../validation/series.validation");
 const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
 const cloudinary = require("cloudinary").v2;
 const { extractPublicId } = require("../helper/cloudinaryHelper");
-
-// const createSeries = async (req, res) => {
-//   try {
-//     const {
-//       name,
-//       price,
-//       description,
-//       totalCharacters,
-//       size,
-//       material,
-//       ageToUse,
-//     } = req.body;
-//     const representativeImageURL = req.file || null;
-
-//     //check representative is required
-//     if (!representativeImageURL) {
-//       return res
-//         .status(400)
-//         .json({ message: "Representative image is required" });
-//     }
-
-//     //validation from req.body
-//     const { error } = validateSeriesData(req.body);
-
-//     if (error) {
-//       if (req.file) {
-//         await Promise.all(req.file.map((file) => fs.unlink(file.path)));
-//       }
-//       return res.status(400).json({
-//         success: false,
-//         message: "Validation error",
-//         errors: error.details.map((err) => err.message),
-//       });
-//     }
-
-//     // Upload ảnh lên Cloudinary
-//     const uploadedFile = [];
-//     uploadedFile.push(req.file);
-//     const uploadedImages = await uploadFilesToCloudinary(uploadedFile);
-//     representativeImageURL = uploadedImages.url;
-
-//     //add series to db
-//     const releaseDate = Date.now();
-//     const isTagNew = true;
-//     const newSeries = await addSeries({
-//       name,
-//       description,
-//       price,
-//       releaseDate,
-//       totalCharacters,
-//       size,
-//       material,
-//       ageToUse,
-//       isTagNew,
-//       representativeImageURL,
-//     });
-
-//     res
-//       .status(201)
-//       .json({ message: "Series created successfully", series: newSeries });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+const fs = require("fs");
 
 const createSeries = async (req, res) => {
   try {
@@ -141,6 +82,8 @@ const createSeries = async (req, res) => {
       representativeImageURL, // Lưu URL từ Cloudinary
     });
 
+    // Xóa ảnh trong file tạm sau khi tạo series thành công
+    await fs.unlink(file.path);
     res
       .status(201)
       .json({ message: "Series created successfully", series: newSeries });
@@ -178,6 +121,12 @@ const deleteSeries = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await deleteSeriesById(id);
+    const deletedProduct = await getAllProductsBySeriesId(id);
+
+    for (let i = 0; i < deletedProduct.length; i++) {
+      await deleteProductById(deletedProduct[i].id);
+    }
+
     if (!result) {
       return res.status(404).json({
         success: false,

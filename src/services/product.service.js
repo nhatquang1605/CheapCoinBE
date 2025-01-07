@@ -1,18 +1,8 @@
 const Product = require("../models/product.model");
-const ProductImage = require("../models/productImage.model");
-const Series = require("../models/series.model");
 
 const addProduct = async (productData) => {
   const newProduct = new Product(productData);
   return await newProduct.save();
-};
-
-const saveProductImages = async (imageRecords) => {
-  return await ProductImage.insertMany(imageRecords);
-};
-
-const checkSeriesExistence = async (seriesID) => {
-  return await Series.exists({ _id: seriesID });
 };
 
 const getAllProducts = async () => {
@@ -46,12 +36,15 @@ const deleteProductById = async (id) => {
   return deletedProduct;
 };
 
+const getAllProductsBySeriesId = async (id) => {
+  return await Product.find({ seriesID: id });
+};
+
 module.exports = {
   addProduct,
-  saveProductImages,
-  checkSeriesExistence,
   getAllProducts,
   getProductById,
   updateProduct,
   deleteProductById,
+  getAllProductsBySeriesId,
 };

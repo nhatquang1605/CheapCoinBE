@@ -1,12 +1,12 @@
 const {
   addProduct,
-  saveProductImages,
-  checkSeriesExistence,
   getAllProducts,
   getProductById,
   updateProduct,
   deleteProductById,
 } = require("../services/product.service");
+const { saveProductImages } = require("../services/productImage.service");
+const { checkSeriesExistence } = require("../services/series.service");
 const { extractPublicId } = require("../helper/cloudinaryHelper");
 const { validateProductData } = require("../validation/product.validation");
 const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
