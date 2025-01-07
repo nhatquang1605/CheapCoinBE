@@ -23,7 +23,7 @@ const SeriesSchema = new mongoose.Schema(
       enum: [6, 12],
       required: true,
     },
-    representativeImageURL: {
+    posterImageURL: {
       type: String,
     },
     size: {

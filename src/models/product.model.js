@@ -23,6 +23,10 @@ const ProductSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isMainInSeries: {
+      type: Boolean,
+      default: false,
+    },
     releaseDate: {
       type: Date,
     },

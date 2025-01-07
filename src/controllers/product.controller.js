@@ -74,9 +74,8 @@ const createProduct = async (req, res) => {
     });
 
     // Lưu thông tin ảnh vào DB
-    const images = req.files;
-    if (images && images.length > 0) {
-      const imageRecords = images.map((file, index) => ({
+    if (uploadedImages && uploadedImages.length > 0) {
+      const imageRecords = uploadedImagess.map((file, index) => ({
         productID: newProduct._id,
         imageURL: uploadedImages.url,
         isPrimary: index === 0, // Ảnh đầu tiên là đại diện
@@ -92,6 +91,7 @@ const createProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 const getAll = async (req, res) => {
   try {
     const products = await getAllProducts();
