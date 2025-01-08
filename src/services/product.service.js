@@ -40,6 +40,22 @@ const getAllProductsBySeriesId = async (id) => {
   return await Product.find({ seriesID: id });
 };
 
+const checkMainProductExist = async (seriesID) => {
+  const existingMainProduct = await Product.findOne({
+    seriesID,
+    isMainInSeries: true, // mainProduct được định nghĩa là sản phẩm đặc biệt
+  });
+  if (existingMainProduct) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+const getMainProductOfSeries = async (seriesID) => {
+  return await Product.findOne({ seriesID, isMainInSeries: true });
+};
+
 module.exports = {
   addProduct,
   getAllProducts,
@@ -47,4 +63,6 @@ module.exports = {
   updateProduct,
   deleteProductById,
   getAllProductsBySeriesId,
+  checkMainProductExist,
+  getMainProductOfSeries,
 };

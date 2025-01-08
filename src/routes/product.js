@@ -4,11 +4,7 @@ const productController = require("../controllers/product.controller");
 
 const router = express.Router();
 
-router.post(
-  "/create",
-  upload.array("images", 5),
-  productController.createProduct
-);
+router.post("/create", upload.single("image"), productController.createProduct);
 router.get("/", productController.getAll);
 router.get("/:id", productController.getById);
 router.put("/:id", productController.update);

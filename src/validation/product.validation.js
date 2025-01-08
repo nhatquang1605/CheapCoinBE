@@ -20,11 +20,6 @@ const validateProductData = (data) => {
       "string.base": "SeriesID phải là chuỗi.",
       "any.required": "SeriesID là bắt buộc.",
     }),
-    images: Joi.array().items(Joi.string()).min(1).max(5).required().messages({
-      "array.min": "Bạn phải upload ít nhất 1 ảnh cho Product.",
-      "array.max": "Bạn chỉ được upload tối đa 5 ảnh cho Product.",
-      "any.required": "Images là trường bắt buộc.",
-    }),
     isSpecialEdition: Joi.boolean().optional().messages({
       "boolean.base": "isSpecialEdition phải là giá trị boolean.",
     }),

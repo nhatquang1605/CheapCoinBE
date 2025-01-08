@@ -4,13 +4,13 @@ const {
   getProductById,
   updateProduct,
   deleteProductById,
+  checkMainProductExist,
 } = require("../services/product.service");
-const { saveProductImages } = require("../services/productImage.service");
 const { checkSeriesExistence } = require("../services/series.service");
 const { extractPublicId } = require("../helper/cloudinaryHelper");
 const { validateProductData } = require("../validation/product.validation");
 const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
-const fs = require("fs/promises");
+const fs = require("fs").promises;
 
 const createProduct = async (req, res) => {
   try {
@@ -20,39 +20,44 @@ const createProduct = async (req, res) => {
       stockQuantity,
       seriesID,
       isSpecialEdition,
+      isMainInSeries,
       releaseDate,
     } = req.body;
 
-    // Chuyển req.files thành mảng tên file hoặc đường dẫn
-    const files = req.files || []; // Nếu không có file, gán giá trị rỗng
-    const imagePaths = files.map((file) => file.path); // Hoặc dùng file.filename nếu cần
-
-    // Gán images vào req.body
-    const data = {
-      ...req.body,
-      images: imagePaths, // Thêm trường images từ files
-    };
+    // Kiểm tra file ảnh (chỉ cho phép 1 ảnh duy nhất)
+    const file = req.file; // Sử dụng `req.file` nếu cấu hình multer chỉ cho phép upload 1 file
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: "Product must have an image",
+      });
+    }
 
     // Kiểm tra series tồn tại
     const isSeriesValid = await checkSeriesExistence(seriesID);
     if (!isSeriesValid) {
-      if (req.files && req.files.length > 0) {
-        await Promise.all(req.files.map((file) => fs.unlink(file.path)));
-      }
+      await fs.unlink(file.path); // Xóa file tạm nếu series không tồn tại
       return res.status(404).json({
         success: false,
         message: "Series does not exist",
       });
     }
 
-    // Thực hiện validate dữ liệu đầu vào
-    const { error } = validateProductData(data);
+    // Kiểm tra xem series đã có sản phẩm chính (mainProduct) chưa
+    const existingMainProduct = await checkMainProductExist(seriesID);
 
+    if (existingMainProduct) {
+      await fs.unlink(file.path); // Xóa file tạm nếu đã có mainProduct
+      return res.status(400).json({
+        success: false,
+        message: "Series already has a main product",
+      });
+    }
+
+    // Validate dữ liệu đầu vào
+    const { error } = validateProductData(req.body);
     if (error) {
-      // Kiểm tra nếu có nhiều ảnh
-      if (req.files && req.files.length > 0) {
-        await Promise.all(req.files.map((file) => fs.unlink(file.path)));
-      }
+      await fs.unlink(file.path); // Xóa file tạm nếu dữ liệu không hợp lệ
       return res.status(400).json({
         success: false,
         message: "Validation error",
@@ -60,8 +65,8 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // Upload ảnh lên Cloudinary
-    const uploadedImages = await uploadFilesToCloudinary(files);
+    // Upload file lên Cloudinary
+    const uploadedImage = await uploadFilesToCloudinary([file]);
 
     // Tạo sản phẩm
     const newProduct = await addProduct({
@@ -71,23 +76,16 @@ const createProduct = async (req, res) => {
       seriesID,
       isSpecialEdition,
       releaseDate,
+      isMainInSeries,
+      imageUrl: uploadedImage.data[0].url, // Lưu URL ảnh từ Cloudinary
     });
-
-    // Lưu thông tin ảnh vào DB
-    if (uploadedImages && uploadedImages.length > 0) {
-      const imageRecords = uploadedImagess.map((file, index) => ({
-        productID: newProduct._id,
-        imageURL: uploadedImages.url,
-        isPrimary: index === 0, // Ảnh đầu tiên là đại diện
-      }));
-      await saveProductImages(imageRecords);
-    }
 
     res.status(201).json({
       message: "Product created successfully",
       product: newProduct,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };

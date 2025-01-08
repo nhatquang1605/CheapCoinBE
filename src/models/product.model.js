@@ -27,6 +27,10 @@ const ProductSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    imageUrl: {
+      type: String,
+      required: true,
+    },
     releaseDate: {
       type: Date,
     },

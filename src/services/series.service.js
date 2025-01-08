@@ -11,19 +11,63 @@ const addSeries = async (data) => {
 };
 
 const getAllSeries = async (page, limit, skip) => {
-  const total = await Series.countDocuments(); // Tổng số lượng series
-  const series = await Series.find()
-    .skip(skip)
-    .limit(limit)
-    .sort({ createdAt: -1 }); // Sắp xếp theo thời gian tạo mới nhất
+  try {
+    const pipeline = [
+      {
+        $lookup: {
+          from: "Products", // Tên collection của Product
+          localField: "_id", // Series ID
+          foreignField: "seriesID", // Liên kết qua seriesID trong Product
+          as: "products", // Kết quả được gán vào "products"
+        },
+      },
+      {
+        $addFields: {
+          mainProduct: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$products", // Duyệt qua danh sách sản phẩm
+                  as: "product",
+                  cond: { $eq: ["$$product.isMainInSeries", true] }, // Lọc sản phẩm chính
+                },
+              },
+              0, // Lấy phần tử đầu tiên
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          products: 0, // Loại bỏ danh sách "products" khỏi kết quả để giảm dữ liệu trả về
+        },
+      },
+      {
+        $sort: { createdAt: -1 }, // Sắp xếp theo thời gian tạo mới nhất
+      },
+      {
+        $skip: skip, // Bỏ qua số lượng tài liệu để phân trang
+      },
+      {
+        $limit: limit, // Giới hạn số lượng kết quả trả về
+      },
+    ];
 
-  return {
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-    data: series,
-  };
+    const total = await Series.countDocuments(); // Tổng số lượng series
+    const data = await Series.aggregate(pipeline); // Thực hiện truy vấn Aggregation
+
+    return {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data,
+    };
+  } catch (error) {
+    throw new Error(
+      "Error fetching series with main products: " + error.message
+    );
+  }
 };
 
 const getSeriesById = async (id) => {

@@ -9,6 +9,7 @@ const {
 const {
   getAllProductsBySeriesId,
   deleteProductById,
+  getMainProductOfSeries,
 } = require("../services/product.service");
 const { validateSeriesData } = require("../validation/series.validation");
 const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
@@ -63,7 +64,7 @@ const createSeries = async (req, res) => {
     }
 
     // Lấy URL từ Cloudinary
-    const representativeImageURL = uploadedImage.data[0].url;
+    const posterImageURL = uploadedImage.data[0].url;
 
     // Tạo series mới và lưu vào database
     const releaseDate = Date.now();
@@ -79,7 +80,7 @@ const createSeries = async (req, res) => {
       material,
       ageToUse,
       isTagNew,
-      representativeImageURL, // Lưu URL từ Cloudinary
+      posterImageURL, // Lưu URL từ Cloudinary
     });
     res
       .status(201)
@@ -108,7 +109,12 @@ const getById = async (req, res) => {
   try {
     const { id } = req.params; // Lấy ID từ params
     const series = await getSeriesById(id);
-    res.status(200).json({ success: true, data: series });
+
+    // Lấy thông tin mainProduct theo seriesID
+    const mainProduct = await getMainProductOfSeries(id);
+
+    const data = { series, mainProduct };
+    res.status(200).json({ success: true, data: data });
   } catch (error) {
     res.status(404).json({ success: false, message: error.message });
   }
@@ -175,7 +181,7 @@ const updateSeries = async (req, res) => {
       });
     }
 
-    let newImageUrl = existingSeries.representativeImageURL; // URL ảnh cũ mặc định
+    let newImageUrl = existingSeries.posterImageURL; // URL ảnh cũ mặc định
     let newPublicId = null;
 
     // Nếu người dùng upload ảnh mới
