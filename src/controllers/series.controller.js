@@ -14,7 +14,11 @@ const {
 const { validateSeriesData } = require("../validation/series.validation");
 const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
 const cloudinary = require("cloudinary").v2;
-const { extractPublicId } = require("../helper/cloudinaryHelper");
+const {
+  extractPublicId,
+  generateHash,
+  getCloudinaryETag,
+} = require("../helper/cloudinaryHelper");
 const fs = require("fs").promises;
 
 const createSeries = async (req, res) => {
@@ -126,8 +130,8 @@ const deleteSeries = async (req, res) => {
     const series = await getSeriesById(id);
 
     // Xóa ảnh trên Cloudinary nếu tồn tại
-    if (series.representativeImageURL) {
-      const publicId = extractPublicId(series.representativeImageURL); // Hàm trích xuất public_id từ URL
+    if (series.posterImageURL) {
+      const publicId = extractPublicId(series.posterImageURL); // Hàm trích xuất public_id từ URL
       await cloudinary.uploader.destroy(publicId); // Xóa ảnh trên Cloudinary
     }
 
@@ -136,6 +140,11 @@ const deleteSeries = async (req, res) => {
     const deletedProduct = await getAllProductsBySeriesId(id);
 
     for (let i = 0; i < deletedProduct.length; i++) {
+      // Xóa ảnh trên Cloudinary nếu tồn tại
+      if (deletedProduct[i].imageUrl) {
+        let publicIdProduct = extractPublicId(deletedProduct[i].imageUrl); // Hàm trích xuất public_id từ URL
+        await cloudinary.uploader.destroy(publicIdProduct); // Xóa ảnh trên Cloudinary
+      }
       await deleteProductById(deletedProduct[i].id);
     }
 
@@ -161,6 +170,7 @@ const deleteSeries = async (req, res) => {
 const updateSeries = async (req, res) => {
   try {
     const seriesId = req.params.id;
+    const file = req.file;
 
     // Lấy thông tin series hiện tại từ database
     const existingSeries = await getSeriesById(seriesId);
@@ -168,12 +178,10 @@ const updateSeries = async (req, res) => {
       return res.status(404).json({ message: "Series not found" });
     }
 
-    //validate thông tin
+    // Validate dữ liệu đầu vào
     const { error } = validateSeriesData(req.body);
     if (error) {
-      if (req.file && req.file.path) {
-        await Promise.all(req.files.map((file) => fs.unlink(file.path)));
-      }
+      if (req.file && req.file.path) await fs.unlink(req.file.path);
       return res.status(400).json({
         success: false,
         message: "Validation error",
@@ -181,29 +189,47 @@ const updateSeries = async (req, res) => {
       });
     }
 
-    let newImageUrl = existingSeries.posterImageURL; // URL ảnh cũ mặc định
+    let newImageUrl = existingSeries.posterImageURL;
     let newPublicId = null;
 
-    // Nếu người dùng upload ảnh mới
+    // Nếu có ảnh upload mới
     if (req.file) {
-      const uploadedFileUrl = req.file.path; // URL của ảnh mới từ Cloudinary
-      if (uploadedFileUrl !== existingSeries.image) {
-        // Nếu ảnh mới khác ảnh cũ
-        newImageUrl = uploadedFileUrl; // Cập nhật URL ảnh
-        newPublicId = req.file.filename; // Lưu public_id của ảnh mới
+      const newImageHash = generateHash(req.file.path);
+      const oldImageHash = await getCloudinaryETag(
+        existingSeries.posterImageURL
+      );
+
+      // So sánh hash, nếu khác thì mới upload lên Cloudinary
+      if (newImageHash !== oldImageHash) {
+        const uploadedImage = await uploadFilesToCloudinary([file]);
+
+        if (!uploadedImage.success || uploadedImage.data.length === 0) {
+          await fs.unlink(file.path);
+          return res.status(500).json({
+            message: "Error uploading image to Cloudinary",
+          });
+        }
+
+        // Lấy giá trị từ mảng dữ liệu trả về
+        newImageUrl = uploadedImage.data[0].url;
+        newPublicId = uploadedImage.data[0].public_id;
 
         // Xóa ảnh cũ trên Cloudinary
-        const oldPublicId = extractPublicId(existingSeries.image);
-        await cloudinary.uploader.destroy(oldPublicId);
+        const oldPublicId = extractPublicId(existingSeries.posterImageURL);
+        if (oldPublicId) await cloudinary.uploader.destroy(oldPublicId);
       } else {
-        // Nếu ảnh mới giống ảnh cũ, xóa ảnh mới vừa upload
-        await cloudinary.uploader.destroy(req.file.filename);
+        // Nếu ảnh giống nhau, không upload và xóa file tạm
+        await fs.unlink(req.file.path);
       }
     }
 
-    // Cập nhật trong database
-    const updatedSeries = await updateSeriesById(seriesId, req.body);
+    // Cập nhật database
+    const updatedSeriesData = {
+      ...req.body,
+      posterImageURL: newImageUrl,
+    };
 
+    const updatedSeries = await updateSeriesById(seriesId, updatedSeriesData);
     return res.status(200).json({
       success: true,
       message: "Series updated successfully",

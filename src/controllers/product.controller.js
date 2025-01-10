@@ -99,7 +99,7 @@ const getAll = async (req, res) => {
   }
 };
 
-const getById = async (req, res) => {
+const getById = async (req, res) => { 
   try {
     const product = await getProductById(req.params.id);
     if (!product) {
