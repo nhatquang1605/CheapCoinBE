@@ -2,15 +2,20 @@ const {
   addProduct,
   getAllProducts,
   getProductById,
-  updateProduct,
+  updateProductById,
   deleteProductById,
   checkMainProductExist,
 } = require("../services/product.service");
 const { checkSeriesExistence } = require("../services/series.service");
-const { extractPublicId } = require("../helper/cloudinaryHelper");
+const {
+  extractPublicId,
+  generateHash,
+  getCloudinaryETag,
+} = require("../helper/cloudinaryHelper");
 const { validateProductData } = require("../validation/product.validation");
 const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
 const fs = require("fs").promises;
+const cloudinary = require("cloudinary").v2;
 
 const createProduct = async (req, res) => {
   try {
@@ -99,7 +104,7 @@ const getAll = async (req, res) => {
   }
 };
 
-const getById = async (req, res) => { 
+const getById = async (req, res) => {
   try {
     const product = await getProductById(req.params.id);
     if (!product) {
@@ -113,52 +118,75 @@ const getById = async (req, res) => {
   }
 };
 
-const update = async (req, res) => {
-  const { productName, description, stockQuantity, removedImages } = req.body;
-
-  const { error } = validateProductData(req.body);
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      errors: error.details.map((err) => err.message),
-    });
-  }
-
+const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+    const productId = req.params.id;
+    const file = req.file;
+
+    // Lấy thông tin product hiện tại từ database
+    const existingProduct = await getProductById(productId);
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    // **Xóa ảnh cũ nếu có chỉ định từ FE**
-    if (removedImages && removedImages.length > 0) {
-      for (const url of removedImages) {
-        const publicId = extractPublicId(url);
-        await cloudinary.uploader.destroy(publicId);
-        product.imageUrls = product.imageUrls.filter((img) => img !== url);
+    // Validate dữ liệu đầu vào
+    const { error } = validateProductData(req.body);
+    if (error) {
+      if (req.file && req.file.path) await fs.unlink(req.file.path);
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: error.details.map((err) => err.message),
+      });
+    }
+
+    let newImageUrl = existingProduct.imageUrl;
+    let newPublicId = null;
+
+    // Nếu có ảnh upload mới
+    if (req.file) {
+      const newImageHash = generateHash(req.file.path);
+      const oldImageHash = await getCloudinaryETag(existingProduct.imageUrl);
+
+      // So sánh hash, nếu khác thì mới upload lên Cloudinary
+      if (newImageHash !== oldImageHash) {
+        const uploadedImage = await uploadFilesToCloudinary([file]);
+
+        if (!uploadedImage.success || uploadedImage.data.length === 0) {
+          await fs.unlink(file.path);
+          return res.status(500).json({
+            message: "Error uploading image to Cloudinary",
+          });
+        }
+
+        // Lấy giá trị từ mảng dữ liệu trả về
+        newImageUrl = uploadedImage.data[0].url;
+        newPublicId = uploadedImage.data[0].public_id;
+
+        // Xóa ảnh cũ trên Cloudinary
+        const oldPublicId = extractPublicId(existingProduct.imageUrl);
+        if (oldPublicId) await cloudinary.uploader.destroy(oldPublicId);
+      } else {
+        // Nếu ảnh giống nhau, không upload và xóa file tạm
+        await fs.unlink(req.file.path);
       }
     }
 
-    // **Upload ảnh mới (nếu có)**
-    const newImageUrls = [];
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const result = await cloudinary.uploader.upload(file.path);
-        newImageUrls.push(result.secure_url);
-      }
-    }
+    // Cập nhật database
+    const updatedProductData = {
+      ...req.body,
+      imageUrl: newImageUrl,
+    };
 
-    // **Cập nhật product trong database**
-    product.productName = productName || product.productName;
-    product.description = description || product.description;
-    product.stockQuantity = stockQuantity || product.stockQuantity;
-    product.imageUrls = [...product.imageUrls, ...newImageUrls];
-
-    await product.save();
-
-    res.status(200).json({ success: true, product });
+    const updatedProduct = await updateProductById(
+      productId,
+      updatedProductData
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Series updated successfully",
+      data: updatedProduct,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -179,6 +207,6 @@ module.exports = {
   createProduct,
   getAll,
   getById,
-  update,
+  updateProduct,
   deleteProduct,
 };

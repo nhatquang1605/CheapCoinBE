@@ -13,12 +13,7 @@ const getProductById = async (id) => {
   return await Product.findById(id).populate("seriesID");
 };
 
-const updateProduct = async (id, productData) => {
-  const { error } = validateProductData(productData);
-  if (error) {
-    throw new Error(error.details.map((err) => err.message).join(", "));
-  }
-
+const updateProductById = async (id, productData) => {
   const updatedProduct = await Product.findByIdAndUpdate(id, productData, {
     new: true,
   }).populate("seriesID");
@@ -60,7 +55,7 @@ module.exports = {
   addProduct,
   getAllProducts,
   getProductById,
-  updateProduct,
+  updateProductById,
   deleteProductById,
   getAllProductsBySeriesId,
   checkMainProductExist,

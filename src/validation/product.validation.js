@@ -31,24 +31,4 @@ const validateProductData = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-const validateProductDataUpdate = (data) => {
-  const productSchema = Joi.object({
-    productName: Joi.string().min(3).required().messages({
-      "string.min": "Product name must be at least 3 characters.",
-      "any.required": "Product name is required.",
-    }),
-    description: Joi.string().required().messages({
-      "any.required": "Description is required.",
-    }),
-    stockQuantity: Joi.number().min(0).required().messages({
-      "number.min": "Stock quantity must be a positive number.",
-      "any.required": "Stock quantity is required.",
-    }),
-    removedImages: Joi.array().items(Joi.string()).optional(),
-    images: Joi.array().items(Joi.string()).optional(),
-  });
-
-  return productSchema.validate(data, { abortEarly: false });
-};
-
-module.exports = { validateProductData, validateProductDataUpdate };
+module.exports = { validateProductData };
