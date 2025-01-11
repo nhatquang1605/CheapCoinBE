@@ -1,5 +1,5 @@
 const paginationMiddleware = (req, res, next) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page, limit } = req.query;
 
   // Chuyển đổi sang số nguyên và đảm bảo giá trị hợp lệ
   const parsedPage = parseInt(page, 10);

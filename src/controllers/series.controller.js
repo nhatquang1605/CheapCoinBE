@@ -97,8 +97,23 @@ const createSeries = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const { page, limit, skip } = req.pagination; // Lấy thông tin phân trang từ middleware
-    const data = await getAllSeries(page, limit, skip);
+    const {
+      page,
+      limit,
+      name,
+      isAvailable,
+      totalCharacters,
+      sortBy,
+      sortOrder,
+    } = req.query;
+
+    const filters = { name, isAvailable, totalCharacters };
+    const sort = sortBy
+      ? { [sortBy]: sortOrder === "desc" ? -1 : 1 }
+      : { createdAt: -1 };
+
+    const data = await getAllSeries({ page, limit, filters, sort });
+
     res.status(200).json({
       success: true,
       message: "Lấy danh sách series thành công",

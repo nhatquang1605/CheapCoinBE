@@ -10,15 +10,36 @@ const addSeries = async (data) => {
   }
 };
 
-const getAllSeries = async (page, limit, skip) => {
+const getAllSeries = async ({
+  page = 1,
+  limit = 10,
+  filters = {},
+  sort = {},
+}) => {
   try {
+    // Chuyển đổi các giá trị phân trang và tính skip
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    // Tạo đối tượng filter từ query (chỉ lọc nếu truyền vào)
+    const filterQuery = {};
+    if (filters.name) {
+      filterQuery.name = { $regex: filters.name, $options: "i" }; // Tìm kiếm không phân biệt hoa thường
+    }
+    if (filters.isAvailable !== undefined) {
+      filterQuery.isAvailable = filters.isAvailable === "true";
+    }
+
+    // Pipeline xử lý aggregation với filter, lookup, sort và pagination
     const pipeline = [
+      { $match: filterQuery }, // Lọc dữ liệu theo điều kiện
       {
         $lookup: {
-          from: "Products", // Tên collection của Product
-          localField: "_id", // Series ID
-          foreignField: "seriesID", // Liên kết qua seriesID trong Product
-          as: "products", // Kết quả được gán vào "products"
+          from: "Products",
+          localField: "_id",
+          foreignField: "seriesID",
+          as: "products",
         },
       },
       {
@@ -27,46 +48,35 @@ const getAllSeries = async (page, limit, skip) => {
             $arrayElemAt: [
               {
                 $filter: {
-                  input: "$products", // Duyệt qua danh sách sản phẩm
+                  input: "$products",
                   as: "product",
-                  cond: { $eq: ["$$product.isMainInSeries", true] }, // Lọc sản phẩm chính
+                  cond: { $eq: ["$$product.isMainInSeries", true] },
                 },
               },
-              0, // Lấy phần tử đầu tiên
+              0,
             ],
           },
         },
       },
-      {
-        $project: {
-          products: 0, // Loại bỏ danh sách "products" khỏi kết quả để giảm dữ liệu trả về
-        },
-      },
-      {
-        $sort: { createdAt: -1 }, // Sắp xếp theo thời gian tạo mới nhất
-      },
-      {
-        $skip: skip, // Bỏ qua số lượng tài liệu để phân trang
-      },
-      {
-        $limit: limit, // Giới hạn số lượng kết quả trả về
-      },
+      { $project: { products: 0 } }, // Loại bỏ danh sách sản phẩm
+      { $sort: sort }, // Sắp xếp theo điều kiện truyền vào
+      { $skip: skip },
+      { $limit: parsedLimit },
     ];
 
-    const total = await Series.countDocuments(); // Tổng số lượng series
-    const data = await Series.aggregate(pipeline); // Thực hiện truy vấn Aggregation
+    // Tổng số kết quả cho điều kiện hiện tại
+    const total = await Series.countDocuments(filterQuery);
+    const data = await Series.aggregate(pipeline);
 
     return {
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit),
       data,
     };
   } catch (error) {
-    throw new Error(
-      "Error fetching series with main products: " + error.message
-    );
+    throw new Error(`Error fetching series: ${error.message}`);
   }
 };
 
