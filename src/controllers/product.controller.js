@@ -194,12 +194,33 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   try {
-    await deleteProductById(req.params.id);
-    res
-      .status(200)
-      .json({ success: true, message: "Product deleted successfully" });
+    const { id } = req.params; // Lấy ID từ params
+    const product = await getProductById(id);
+
+    // Xóa ảnh trên Cloudinary nếu tồn tại
+    if (product.imageUrl) {
+      const publicId = extractPublicId(product.imageUrl); // Hàm trích xuất public_id từ URL
+      await cloudinary.uploader.destroy(publicId); // Xóa ảnh trên Cloudinary
+    }
+
+    const result = await deleteProductById(id);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Product không tồn tại!",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Xóa product thành công!",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Có lỗi xảy ra khi xóa product!",
+      error: error.message,
+    });
   }
 };
 
