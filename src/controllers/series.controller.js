@@ -97,17 +97,9 @@ const createSeries = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const {
-      page,
-      limit,
-      name,
-      isAvailable,
-      totalCharacters,
-      sortBy,
-      sortOrder,
-    } = req.query;
+    const { page, limit, name, isAvailable, sortBy, sortOrder } = req.query;
 
-    const filters = { name, isAvailable, totalCharacters };
+    const filters = { name, isAvailable };
     const sort = sortBy
       ? { [sortBy]: sortOrder === "desc" ? -1 : 1 }
       : { createdAt: -1 };
