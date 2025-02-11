@@ -128,4 +128,54 @@ const logout = async (refreshToken) => {
   return { message: "Logout successful" };
 };
 
-module.exports = { register, verifyOTP, login, refreshToken, logout };
+const requestResetPassword = async (email, frontendUrl) => {
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("Email không tồn tại");
+
+  const resetToken = jwt.sign({ email }, process.env.JWT_ACCESS_SECRET, {
+    expiresIn: process.env.JWT_ACCESS_EXPIRY,
+  });
+  user.resetToken = resetToken;
+  user.resetTokenExpiry = Date.now() + 15 * 60 * 1000; // Hết hạn sau 15 phút
+  await user.save();
+
+  const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`; // FE cung cấp URL
+  await sendMail(
+    user.email,
+    "Đặt lại mật khẩu",
+    `Bấm vào link sau để đặt lại mật khẩu: ${resetLink}`
+  );
+};
+
+const verifyResetToken = async (token) => {
+  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  const user = await User.findOne({
+    email: decoded.email,
+    resetToken: token,
+  });
+  if (!user || user.resetTokenExpiry < Date.now())
+    throw new Error("Token không hợp lệ hoặc đã hết hạn");
+};
+
+const resetPassword = async (token, newPassword) => {
+  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  const user = await User.findOne({ email: decoded.email, resetToken: token });
+  if (!user || user.resetTokenExpiry < Date.now())
+    throw new Error("Token không hợp lệ hoặc đã hết hạn");
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.resetToken = null;
+  user.resetTokenExpiry = null;
+  await user.save();
+};
+
+module.exports = {
+  register,
+  verifyOTP,
+  login,
+  refreshToken,
+  logout,
+  requestResetPassword,
+  verifyResetToken,
+  resetPassword,
+};
