@@ -12,4 +12,6 @@ router.post("/requestResetPassword", authController.requestResetPassword);
 router.get("/resetPassword", authController.verifyResetToken);
 router.post("/resetPassword", authController.resetPassword);
 
+router.post("/google-login", authController.loginWithGoogle);
+
 module.exports = router;

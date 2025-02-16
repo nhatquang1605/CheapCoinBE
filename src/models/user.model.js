@@ -15,7 +15,6 @@ const UsersSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
     }, // Mã hóa mật khẩu khi lưu
     role: {
       type: String,

@@ -81,6 +81,21 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const loginWithGoogle = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token)
+      return res
+        .status(400)
+        .json({ message: "Token Google không được để trống" });
+
+    const data = await authService.googleLogin(token);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerByMail,
   verifyOTP,
@@ -90,4 +105,5 @@ module.exports = {
   requestResetPassword,
   verifyResetToken,
   resetPassword,
+  loginWithGoogle,
 };

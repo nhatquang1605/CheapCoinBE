@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const sendMail = require("../services/mail.service");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
+const { OAuth2Client } = require("google-auth-library");
 
 dotenv.config();
 
@@ -169,6 +170,55 @@ const resetPassword = async (token, newPassword) => {
   await user.save();
 };
 
+const googleLogin = async (token) => {
+  try {
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    // Xác thực ID Token từ Google
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    // Lấy thông tin user từ Google
+    const { email, name } = ticket.getPayload();
+
+    // Kiểm tra xem user đã có tài khoản chưa
+    let user = await User.findOne({ email });
+
+    // Nếu chưa có, tạo mới user
+    if (!user) {
+      user = new User({
+        fullName: name,
+        email,
+        isVerified: true, // Google user luôn verified
+        role: "Customer",
+      });
+      await user.save();
+    }
+
+    // Tạo Access Token & Refresh Token
+    const accessToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: process.env.JWT_ACCESS_EXPIRY }
+    );
+    const refreshToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_EXPIRY }
+    );
+
+    // Lưu refresh token vào DB
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    return { accessToken, refreshToken, user };
+  } catch (error) {
+    throw new Error("Xác thực Google thất bại: " + error.message);
+  }
+};
+
 module.exports = {
   register,
   verifyOTP,
@@ -178,4 +228,5 @@ module.exports = {
   requestResetPassword,
   verifyResetToken,
   resetPassword,
+  googleLogin,
 };
