@@ -18,6 +18,10 @@ const SeriesSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    quantity: {
+      type: Number,
+      required: true,
+    },
     totalCharacters: {
       type: Number,
       enum: [6, 12],
