@@ -199,12 +199,12 @@ const googleLogin = async (token) => {
 
     // Tạo Access Token & Refresh Token
     const accessToken = jwt.sign(
-      { userId: user._id, email: user.email },
+      { id: user._id, email: user.email },
       process.env.JWT_ACCESS_SECRET,
       { expiresIn: process.env.JWT_ACCESS_EXPIRY }
     );
     const refreshToken = jwt.sign(
-      { userId: user._id },
+      { id: user._id },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: process.env.JWT_REFRESH_EXPIRY }
     );

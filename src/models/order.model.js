@@ -3,23 +3,35 @@ const COLLECTION_NAME = "Orders";
 
 const OrderSchema = new mongoose.Schema(
   {
-    customerID: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
       required: true,
     },
-    totalAmount: { type: Number, required: true },
-    orderDate: { type: Date, default: Date.now },
+    totalPrice: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["Pending", "Shipped", "Completed", "Cancelled"],
-      default: "Pending",
+      enum: ["pending", "paid", "cancelled"],
+      default: "pending",
     },
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "payos"], // Chỉ chấp nhận 2 phương thức
+      required: true,
+    },
+    shippingAddress: {
+      fullName: { type: String, required: true },
+      phone: { type: String, required: true },
+      address: { type: String, required: true },
+    },
+    orderItems: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "OrderItems",
+      },
+    ],
   },
-  {
-    timestamps: true,
-    collection: COLLECTION_NAME,
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model(COLLECTION_NAME, OrderSchema);

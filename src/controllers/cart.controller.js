@@ -7,10 +7,9 @@ const addToCart = async (req, res) => {
     const userId = req.user.id;
 
     const quantitySeries = await seriesService.getSeriesById(seriesId);
-    if (quantitySeries < quantity) {
-      res.status(400).json({
-        message: "Chỉ còn lại " + quantitySeries + " trong kho",
-        error: error.message,
+    if (quantitySeries.quantity < quantity) {
+      return res.status(400).json({
+        message: "Chỉ còn lại " + quantitySeries.quantity + " trong kho",
       });
     }
 
