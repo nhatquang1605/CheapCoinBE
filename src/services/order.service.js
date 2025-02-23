@@ -28,9 +28,7 @@ const createOrder = async (userId, paymentMethod, shippingAddress) => {
 
   for (let item of cart.items) {
     const orderItem = new OrderItem({
-      orderId: savedOrder._id, // Gắn orderId vào ngay khi tạo OrderItem
       productId: item.seriesId._id,
-      productName: item.seriesId.name,
       productPrice: item.seriesId.price,
       quantity: item.quantity,
     });
@@ -47,12 +45,6 @@ const createOrder = async (userId, paymentMethod, shippingAddress) => {
 
   // Lưu Order
   await savedOrder.save();
-
-  // Cập nhật lại orderId trong OrderItem
-  await OrderItem.updateMany(
-    { _id: { $in: orderItems } },
-    { $set: { orderId: order._id } }
-  );
 
   // Xóa giỏ hàng sau khi tạo đơn hàng
   await Cart.findOneAndDelete({ userId });
@@ -104,6 +96,11 @@ const cancelOrder = async (orderId, userId) => {
 
   // Cập nhật trạng thái order thành "cancelled"
   order.status = "cancelled";
+  order.shippingStatus = "cancelled";
+
+  if (order.paymentStatus === "paid") {
+    order.paymentStatus = "refunded";
+  }
   return await order.save();
 };
 

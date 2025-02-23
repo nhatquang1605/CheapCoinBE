@@ -19,6 +19,16 @@ const OrderSchema = new mongoose.Schema(
       enum: ["cash", "payos"], // Chỉ chấp nhận 2 phương thức
       required: true,
     },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid", "refunded"],
+      default: "unpaid",
+    },
+    shippingStatus: {
+      type: String,
+      enum: ["pending", "shipped", "delivered", "cancelled"],
+      default: "pending",
+    },
     shippingAddress: {
       fullName: { type: String, required: true },
       phone: { type: String, required: true },
