@@ -1,5 +1,6 @@
 const { notFound } = require("../middleware/handle_error");
 const auth = require("./auth");
+const admin = require("./admin");
 // const mechandise = require("./mechandise");
 const order = require("./order");
 const product = require("./product");
@@ -10,6 +11,7 @@ const cart = require("./cart");
 
 const initRoute = (app) => {
   app.use("/api/v1/auth", auth);
+  app.use("/api/v1/admin", admin);
   // app.use("/api/v1/mechandise", mechandise);
   app.use("/api/v1/order", order);
   app.use("/api/v1/product", product);
