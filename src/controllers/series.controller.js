@@ -31,6 +31,7 @@ const createSeries = async (req, res) => {
       size,
       material,
       ageToUse,
+      quantity,
     } = req.body;
 
     const file = req.file; // Lấy file từ multer
@@ -85,6 +86,7 @@ const createSeries = async (req, res) => {
       ageToUse,
       isTagNew,
       posterImageURL, // Lưu URL từ Cloudinary
+      quantity,
     });
     res
       .status(201)

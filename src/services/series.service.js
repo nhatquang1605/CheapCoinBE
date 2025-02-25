@@ -2,7 +2,6 @@ const Series = require("../models/series.model");
 
 const addSeries = async (data) => {
   try {
-    const series = new Series(data);
     const savedSeries = await Series.create(data);
     return savedSeries;
   } catch (error) {

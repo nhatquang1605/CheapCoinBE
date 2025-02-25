@@ -26,6 +26,11 @@ const validateSeriesData = (data) => {
     secretCharacterID: Joi.string().optional().messages({
       "string.base": "SecretCharacterID phải là một chuỗi.",
     }),
+    quantity: Joi.number().min(0).required().messages({
+      "number.base": "Số lượng blind box phải là 1 số",
+      "number.positive": "Số lượng blind box phải lớn hơn hoặc bằng 0",
+      "any.required": "Yêu cầu số lượng",
+    }),
   }).unknown(true);
 
   return schema.validate(data, { abortEarly: false });
