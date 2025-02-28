@@ -9,37 +9,34 @@ cloudinary.config({
 
 async function uploadFilesToCloudinary(files) {
   try {
-    const uploadResults = [];
-
-    for (const file of files) {
-      // Upload file lên Cloudinary
-      const uploadResult = await cloudinary.uploader.upload(file.path, {
-        folder: "CheapCoinProduct",
+    const uploadPromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "CheapCoinProduct" },
+          (error, result) => {
+            if (error)
+              return reject(new Error("Error uploading images to Cloudinary"));
+            resolve(result.secure_url); // ✅ Trả về URL ảnh sau khi upload
+          }
+        );
+        uploadStream.end(file.buffer);
       });
+    });
 
-      // Push kết quả URL và public_id vào mảng
-      uploadResults.push({
-        public_id: uploadResult.public_id,
-        url: uploadResult.secure_url,
-      });
-
-      // Xóa file tạm sau khi upload
-      await fs.unlink(file.path);
-    }
-
-    // Trả về danh sách các URL của ảnh
-    return {
-      success: true,
-      data: uploadResults,
-    };
+    return await Promise.all(uploadPromises); // ✅ Trả về danh sách URL ảnh
   } catch (error) {
-    console.error("Error uploading files to Cloudinary:", error.message);
-
-    return {
-      success: false,
-      error: error.message,
-    };
+    throw new Error("Error uploading images to Cloudinary");
   }
 }
 
-module.exports = { uploadFilesToCloudinary };
+// Hàm xoá ảnh trên Cloudinary khi có lỗi xảy ra
+async function deleteUploadedImages(imageUrls) {
+  await Promise.all(
+    imageUrls.map(async (url) => {
+      const publicId = url.split("/").pop().split(".")[0]; // Lấy public ID từ URL ảnh
+      await cloudinary.uploader.destroy(`CheapCoinProduct/${publicId}`);
+    })
+  );
+}
+
+module.exports = { uploadFilesToCloudinary, deleteUploadedImages };

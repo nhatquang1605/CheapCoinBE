@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
 const COLLECTION_NAME = "Series";
 
@@ -29,6 +30,10 @@ const SeriesSchema = new mongoose.Schema(
     },
     posterImageURL: {
       type: String,
+    },
+    imageUrls: {
+      type: [String],
+      required: true,
     },
     size: {
       type: String,

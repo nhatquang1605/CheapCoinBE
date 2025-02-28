@@ -1,38 +1,15 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
-// Tạo thư mục tạm nếu chưa tồn tại
-const tempDir = path.join(__dirname, "../tmp");
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir);
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, tempDir); // Lưu file tạm
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${
-      file.originalname
-    }`;
-    cb(null, uniqueSuffix);
-  },
-});
+const storage = multer.memoryStorage(); // Lưu vào RAM
 
 const upload = multer({
   storage,
-  limits: {
-    fileSize: 15 * 1024 * 1024, // 5MB mỗi file
-    files: 5, // Tối đa 5 file
-  },
+  limits: { fileSize: 15 * 1024 * 1024, files: 13 }, // Max 15MB mỗi ảnh, tối đa 13 ảnh
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg"];
-    if (allowedMimeTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type. Only JPEG, PNG, and JPG are allowed."));
-    }
+    allowedMimeTypes.includes(file.mimetype)
+      ? cb(null, true)
+      : cb(new Error("Invalid file type."));
   },
 });
 

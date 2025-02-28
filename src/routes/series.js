@@ -7,7 +7,7 @@ const paginationMiddleware = require("../middleware/pagination");
 //create
 router.post(
   "/create",
-  uploader.single("representativeImage"),
+  uploader.array("imageUrls"),
   seriesController.createSeries
 );
 

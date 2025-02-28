@@ -12,7 +12,10 @@ const {
   getMainProductOfSeries,
 } = require("../services/product.service");
 const { validateSeriesData } = require("../validation/series.validation");
-const { uploadFilesToCloudinary } = require("../utils/cloudinaryUtils");
+const {
+  uploadFilesToCloudinary,
+  deleteUploadedImages,
+} = require("../utils/cloudinaryUtils");
 const cloudinary = require("cloudinary").v2;
 const {
   extractPublicId,
@@ -32,65 +35,62 @@ const createSeries = async (req, res) => {
       material,
       ageToUse,
       quantity,
+      releaseDate,
     } = req.body;
 
-    const file = req.file; // Lấy file từ multer
+    const files = req.files; // Lấy file từ multer
 
     // Kiểm tra xem file đại diện có tồn tại không
-    if (!file) {
+    if (!files || files.length < 6 || files.length > 13) {
       return res
         .status(400)
-        .json({ success: false, message: "Representative image is required" });
+        .json({ message: "Please upload between 6 and 13 images" });
     }
 
     // Validate dữ liệu từ req.body
     const { error } = validateSeriesData(req.body);
 
-    if (error) {
-      // Xóa file tạm nếu validate thất bại
-      await fs.unlink(file.path);
-      return res.status(400).json({
-        success: false,
-        message: "Validation error",
-        errors: error.details.map((err) => err.message),
-      });
+    if (error)
+      return res.status(400).json({ message: error.details[0].message });
+
+    // Upload ảnh lên Cloudinary
+    let imageUrls;
+    try {
+      imageUrls = await uploadFilesToCloudinary(files);
+    } catch (uploadError) {
+      return res
+        .status(500)
+        .json({ message: "Failed to upload images to Cloudinary" });
     }
 
-    // Upload file lên Cloudinary
-    const uploadedImage = await uploadFilesToCloudinary([file]);
-
-    // Kiểm tra nếu upload thất bại
-    if (!uploadedImage.success || uploadedImage.data.length === 0) {
-      // Xóa file tạm trong trường hợp upload thất bại
-      await fs.unlink(file.path);
-      return res.status(500).json({
-        message: "Error uploading representative image to Cloudinary",
+    // Lưu thông tin series vào database
+    try {
+      const newSeries = await addSeries({
+        name,
+        description,
+        price,
+        totalCharacters,
+        size,
+        material,
+        ageToUse,
+        quantity,
+        posterImageURL: imageUrls[0], // Ảnh đầu tiên làm ảnh đại diện
+        imageUrls, // Lưu toàn bộ ảnh
+        isTagNew: true,
+        releaseDate,
       });
+
+      return res
+        .status(201)
+        .json({ message: "Series created successfully", series: newSeries });
+    } catch (dbError) {
+      // Nếu lỗi khi lưu DB => Xóa ảnh đã upload
+      await deleteUploadedImages(imageUrls);
+      console.log(dbError.stack || dbError.message);
+      return res
+        .status(500)
+        .json({ message: "Failed to save series in database" });
     }
-
-    // Lấy URL từ Cloudinary
-    const posterImageURL = uploadedImage.data[0].url;
-
-    // Tạo series mới và lưu vào database
-    const releaseDate = Date.now();
-    const isTagNew = true;
-
-    const newSeries = await addSeries({
-      name,
-      description,
-      price,
-      releaseDate,
-      totalCharacters,
-      size,
-      material,
-      ageToUse,
-      isTagNew,
-      posterImageURL, // Lưu URL từ Cloudinary
-      quantity,
-    });
-    res
-      .status(201)
-      .json({ message: "Series created successfully", series: newSeries });
   } catch (error) {
     console.error("Full error stack:", error.stack || error.message);
     res.status(500).json({ message: error.message });
