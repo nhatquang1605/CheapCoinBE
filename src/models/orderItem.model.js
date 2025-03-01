@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
 const COLLECTION_NAME = "OrderItems";
 
@@ -8,6 +9,7 @@ const OrderItemSchema = new mongoose.Schema(
       ref: "Series",
       required: true,
     },
+    productName: { type: String, required: true },
     productPrice: { type: Number, required: true },
     quantity: { type: Number, required: true },
   },

@@ -40,8 +40,19 @@ const OrderSchema = new mongoose.Schema(
         ref: "OrderItems",
       },
     ],
+    orderCode: {
+      type: Number,
+      unique: true,
+    },
   },
   { timestamps: true }
 );
+
+OrderSchema.pre("save", async function (next) {
+  if (!this.orderCode) {
+    this.orderCode = Math.floor(Math.random() * 9007199254740991); // Random số hợp lệ
+  }
+  next();
+});
 
 module.exports = mongoose.model(COLLECTION_NAME, OrderSchema);

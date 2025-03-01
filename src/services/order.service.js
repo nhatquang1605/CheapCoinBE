@@ -31,6 +31,7 @@ const createOrder = async (userId, paymentMethod, shippingAddress) => {
       productId: item.seriesId._id,
       productPrice: item.seriesId.price,
       quantity: item.quantity,
+      productName: item.seriesId.name,
     });
 
     await orderItem.save();
