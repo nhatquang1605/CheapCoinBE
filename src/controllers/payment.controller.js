@@ -46,4 +46,43 @@ const createPaymentLink = async (req, res) => {
   }
 };
 
-module.exports = { createPaymentLink };
+const getPaymentLinkInformation = async (req, res) => {
+  try {
+    const { orderCode } = req.query; // Lấy orderCode từ query params
+
+    if (!orderCode) {
+      return res.status(400).json({ error: "Thiếu orderCode" });
+    }
+
+    const paymentLink = await payOS.getPaymentLinkInformation(orderCode);
+
+    res.status(200).json({ success: true, data: paymentLink });
+  } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
+
+const cancelPaymentLink = async (req, res) => {
+  try {
+    const { orderCode } = req.query; // Lấy orderCode từ query params
+
+    if (!orderCode) {
+      return res.status(400).json({ error: "Thiếu orderCode" });
+    }
+
+    const paymentLink = await payOS.cancelPaymentLink(orderCode, "test");
+
+    res
+      .status(200)
+      .json({ success: true, message: "Cancel success", data: paymentLink });
+  } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
+module.exports = {
+  createPaymentLink,
+  getPaymentLinkInformation,
+  cancelPaymentLink,
+};

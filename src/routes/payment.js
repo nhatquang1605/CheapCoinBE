@@ -8,5 +8,16 @@ router.post(
   verifyToken,
   paymentController.createPaymentLink
 );
+router.get(
+  "/get-payment-link-information",
+  verifyToken,
+  paymentController.getPaymentLinkInformation
+);
+
+router.post(
+  "/cancel-payment-link",
+  verifyToken,
+  paymentController.cancelPaymentLink
+);
 
 module.exports = router;
