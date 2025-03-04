@@ -1,6 +1,7 @@
 const Order = require("../models/order.model");
 const OrderItem = require("../models/orderItem.model");
 const Cart = require("../models/cart.model");
+const Series = require("../models/series.model");
 
 const createOrder = async (userId, paymentMethod, shippingAddress) => {
   // Lấy giỏ hàng
@@ -76,6 +77,10 @@ const getOrderById = async (orderId, userId) => {
   return order;
 };
 
+const getOrderByOrderCode = async (orderCode) => {
+  return await Order.findOne({ orderCode });
+};
+
 const cancelOrder = async (orderId, userId) => {
   // Tìm order theo ID và userId, đồng thời kiểm tra trạng thái "pending"
   const order = await Order.findById(orderId);
@@ -105,22 +110,64 @@ const cancelOrder = async (orderId, userId) => {
   return await order.save();
 };
 
-const payOrder = async (orderId, userId) => {
-  const order = await Order.findOne({
-    _id: orderId,
-    userId,
-    status: "pending",
-    paymentMethod: "cash",
-  });
-  if (!order) throw new Error("Order not found or already paid");
-  order.status = "paid";
-  return await order.save();
+const updateShippingStatus = async (orderId, status) => {
+  const order = await Order.findById(orderId);
+  if (!order) throw new Error("Không tìm thấy đơn hàng");
+
+  order.shippingStatus = status;
+
+  // Nếu hàng đã giao thành công và đã thanh toán, đổi trạng thái đơn hàng thành 'done'
+  if (status === "delivered" && order.paymentStatus === "paid") {
+    order.status = "done";
+  }
+
+  await order.save();
+  return order;
 };
 
+const getPendingShipments = async () => {
+  return await Order.find({ shippingStatus: "pending" });
+};
+
+const handlePayosWebhook = async (orderCode, paymentStatus) => {
+  const order = await Order.findOne({ orderCode }).populate("orderItems");
+  if (!order) throw new Error("Không tìm thấy đơn hàng");
+
+  if (order.status === "cancelled") {
+    throw new Error("Đơn hàng đã bị hủy rồi");
+  }
+
+  if (paymentStatus === "PAID") {
+    order.paymentStatus = "paid";
+
+    // 🔥 Cập nhật số lượng sản phẩm 🔥
+    for (const item of order.orderItems) {
+      const product = await Series.findById(item.productId);
+      if (product) {
+        product.quantity -= item.quantity;
+        await product.save();
+      }
+    }
+  } else if (paymentStatus === "failed") {
+    order.status = "payment_fail";
+  }
+
+  await order.save();
+};
+
+const updateOrderCode = async (orderId, orderCode) => {
+  const order = await Order.findById(orderId);
+  order.orderCode = orderCode;
+  await order.save();
+};
 module.exports = {
   createOrder,
   getUserOrders,
   getOrderById,
   cancelOrder,
-  payOrder,
+  updateShippingStatus,
+  getPendingShipments,
+  handlePayosWebhook,
+  getOrderByOrderCode,
+  updateOrderCode,
 };

@@ -3,7 +3,7 @@ const auth = require("./auth");
 const admin = require("./admin");
 // const mechandise = require("./mechandise");
 const order = require("./order");
-const product = require("./product");
+// const product = require("./product");
 const seri = require("./series");
 const cart = require("./cart");
 const payment = require("./payment");
@@ -15,7 +15,7 @@ const initRoute = (app) => {
   app.use("/api/v1/admin", admin);
   // app.use("/api/v1/mechandise", mechandise);
   app.use("/api/v1/order", order);
-  app.use("/api/v1/product", product);
+  // app.use("/api/v1/product", product);
   app.use("/api/v1/seri", seri);
   app.use("/api/v1/cart", cart);
   app.use("/api/v1/payment", payment);

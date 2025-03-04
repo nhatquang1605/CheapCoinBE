@@ -1,5 +1,7 @@
 const PayOS = require("@payos/node");
 const orderService = require("../services/order.service");
+const crypto = require("crypto");
+const axios = require("axios");
 
 const payOS = new PayOS(
   process.env.PAYOS_CLIENT_ID,
@@ -12,32 +14,39 @@ const createPaymentLink = async (req, res) => {
     const { orderId } = req.body;
     const userId = req.user.id;
 
+    // Lấy thông tin đơn hàng
     const order = await orderService.getOrderById(orderId, userId);
-    let arrayItem;
-
-    if (order.orderItems.length > 1) {
-      order.orderItems.forEach((e) => {
-        const item = {
-          name: e.productName,
-          quantity: e.quantity,
-          price: e.productPrice,
-        };
-        arrayItem.push(item);
-      });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
     }
 
+    // Nếu đã có orderCode thì tạo lại orderCode mới
+    if (order.orderCode != null) {
+      order.orderCode = Math.floor(Math.random() * 9007199254740991);
+      await orderService.updateOrderCode(order.id, order.orderCode);
+    }
+
+    // 📌 Tạo danh sách sản phẩm
+    const arrayItem = order.orderItems.map((e) => ({
+      name: e.productName,
+      quantity: e.quantity,
+      price: e.productPrice,
+    }));
+
+    // 📌 Dữ liệu gửi lên PayOS
     const body = {
       orderCode: order.orderCode,
       amount: order.totalPrice,
       description: "payment to Cheap Coin",
       items: arrayItem,
-      cancelUrl: "http://localhost:5000/cancel.html",
-      returnUrl: "http://localhost:5000/success.html",
+      cancelUrl: "http://localhost:3000",
+      returnUrl: "http://localhost:5000/api/v1/payment/webhook/payos",
     };
 
+    // 📌 Gửi request tạo link thanh toán
     const paymentLinkRes = await payOS.createPaymentLink(body);
 
-    return res.redirect(303, paymentLinkRes.checkoutUrl);
+    return res.status(200).json({ checkoutUrl: paymentLinkRes.checkoutUrl });
   } catch (error) {
     console.error("Full error stack:", error.stack || error.message);
     return res
@@ -63,26 +72,29 @@ const getPaymentLinkInformation = async (req, res) => {
   }
 };
 
-const cancelPaymentLink = async (req, res) => {
+const handlePayOSWebhook = async (req, res) => {
   try {
-    const { orderCode } = req.query; // Lấy orderCode từ query params
+    console.log("Webhook received:", req.query);
 
-    if (!orderCode) {
-      return res.status(400).json({ error: "Thiếu orderCode" });
+    // Lấy orderCode từ query params
+    const { orderCode, status } = req.query;
+
+    if (!orderCode || !status) {
+      return res.status(400).json({ message: "Missing orderCode or status" });
     }
 
-    const paymentLink = await payOS.cancelPaymentLink(orderCode, "test");
+    // Cập nhật trạng thái đơn hàng
+    await orderService.handlePayosWebhook(orderCode, status);
 
-    res
-      .status(200)
-      .json({ success: true, message: "Cancel success", data: paymentLink });
+    return res.status(200).json({ message: "Webhook xử lý thành công" });
   } catch (error) {
-    console.error("Full error stack:", error.stack || error.message);
-    res.status(404).json({ success: false, message: error.message });
+    console.error("Webhook processing error:", error.message);
+    return res.status(500).json({ error: error.message });
   }
 };
+
 module.exports = {
   createPaymentLink,
   getPaymentLinkInformation,
-  cancelPaymentLink,
+  handlePayOSWebhook,
 };

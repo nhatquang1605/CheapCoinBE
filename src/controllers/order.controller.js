@@ -11,7 +11,7 @@ const createOrder = async (req, res) => {
       shippingAddress
     );
 
-    return res.status(400).json({
+    return res.status(200).json({
       message: "Order hàng được tạo thành công, hãy chờ hàng được giao đến",
       result,
     });
@@ -62,17 +62,52 @@ const cancelOrder = async (req, res) => {
 
 const payOrder = async (req, res) => {
   try {
-    const order = await orderService.payOrder(req.params.orderId, req.user.id);
-    res.json({ message: "Order paid successfully", order });
+    const { orderId } = req.params;
+    const result = await orderService.payOrder(orderId);
+    return res.status(200).json({ message: "Thanh toán thành công", result });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
+const refundOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const result = await orderService.refundOrder(orderId);
+    return res.status(200).json({ message: "Hoàn tiền thành công", result });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const updateShippingStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    const result = await orderService.updateShippingStatus(orderId, status);
+    return res
+      .status(200)
+      .json({ message: "Cập nhật trạng thái giao hàng", result });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const getPendingShipments = async (req, res) => {
+  try {
+    const result = await orderService.getPendingShipments();
+    return res.status(200).json({ orders: result });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
 module.exports = {
   createOrder,
   getUserOrders,
   getOrderDetail,
   cancelOrder,
   payOrder,
+  refundOrder,
+  updateShippingStatus,
+  getPendingShipments,
 };
