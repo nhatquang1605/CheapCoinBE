@@ -12,6 +12,11 @@ const OrderItemSchema = new mongoose.Schema(
     productName: { type: String, required: true },
     productPrice: { type: Number, required: true },
     quantity: { type: Number, required: true },
+    type: {
+      type: String,
+      enum: ["set", "single"],
+      required: true,
+    },
   },
   { timestamps: true }
 );

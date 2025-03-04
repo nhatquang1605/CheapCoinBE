@@ -15,6 +15,11 @@ const cartSchema = new mongoose.Schema({
         required: true,
       },
       quantity: { type: Number, required: true, min: 1 },
+      type: {
+        type: String,
+        enum: ["set", "single"],
+        required: true,
+      },
     },
   ],
 });

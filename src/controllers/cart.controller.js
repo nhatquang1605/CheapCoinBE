@@ -3,7 +3,7 @@ const seriesService = require("../services/series.service");
 
 const addToCart = async (req, res) => {
   try {
-    const { seriesId, quantity } = req.body;
+    const { seriesId, quantity, type } = req.body;
     const userId = req.user.id;
 
     const quantitySeries = await seriesService.getSeriesById(seriesId);
@@ -13,7 +13,7 @@ const addToCart = async (req, res) => {
       });
     }
 
-    const cart = await cartService.addToCart(userId, seriesId, quantity);
+    const cart = await cartService.addToCart(userId, seriesId, quantity, type);
     res.status(200).json({ message: "Thêm vào giỏ hàng thành công!", cart });
   } catch (error) {
     res
@@ -41,7 +41,7 @@ const getCart = async (req, res) => {
 
 const updateCartItem = async (req, res) => {
   try {
-    const { seriesId, quantity } = req.body;
+    const { seriesId, quantity, type } = req.body;
     const userId = req.user.id;
 
     const quantitySeries = await seriesService.getSeriesById(seriesId);
@@ -53,7 +53,12 @@ const updateCartItem = async (req, res) => {
       });
     }
 
-    const cart = await cartService.updateCartItem(userId, seriesId, quantity);
+    const cart = await cartService.updateCartItem(
+      userId,
+      seriesId,
+      quantity,
+      type
+    );
     if (!cart)
       return res
         .status(404)
