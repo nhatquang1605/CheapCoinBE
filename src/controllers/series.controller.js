@@ -44,7 +44,10 @@ const createSeries = async (req, res) => {
     if (!files || files.length < 6 || files.length > 13) {
       return res
         .status(400)
-        .json({ message: "Please upload between 6 and 13 images" });
+        .json({
+          message:
+            "Vui lòng upload từ 6 đến 13 tấm hình, tấm hình đâu tiên sẽ là poster",
+        });
     }
 
     // Validate dữ liệu từ req.body
@@ -60,7 +63,9 @@ const createSeries = async (req, res) => {
     } catch (uploadError) {
       return res
         .status(500)
-        .json({ message: "Failed to upload images to Cloudinary" });
+        .json({
+          message: "Upload hình lên cloudinary thất bại, xin thử lại sau",
+        });
     }
 
     // Lưu thông tin series vào database
@@ -82,14 +87,14 @@ const createSeries = async (req, res) => {
 
       return res
         .status(201)
-        .json({ message: "Series created successfully", series: newSeries });
+        .json({ message: "Tạo series thành công", series: newSeries });
     } catch (dbError) {
       // Nếu lỗi khi lưu DB => Xóa ảnh đã upload
       await deleteUploadedImages(imageUrls);
       console.log(dbError.stack || dbError.message);
       return res
         .status(500)
-        .json({ message: "Failed to save series in database" });
+        .json({ message: "Có lỗi khi lưu ảnh vào database" });
     }
   } catch (error) {
     console.error("Full error stack:", error.stack || error.message);
@@ -184,7 +189,9 @@ const updateSeries = async (req, res) => {
     // Lấy thông tin series hiện tại từ database
     const existingSeries = await getSeriesById(seriesId);
     if (!existingSeries) {
-      return res.status(404).json({ message: "Series not found" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy series cần update" });
     }
 
     // Validate dữ liệu đầu vào
@@ -215,7 +222,7 @@ const updateSeries = async (req, res) => {
         if (!uploadedImage.success || uploadedImage.data.length === 0) {
           await fs.unlink(file.path);
           return res.status(500).json({
-            message: "Error uploading image to Cloudinary",
+            message: "Lỗi khi upload lên cloudinary",
           });
         }
 
@@ -241,7 +248,7 @@ const updateSeries = async (req, res) => {
     const updatedSeries = await updateSeriesById(seriesId, updatedSeriesData);
     return res.status(200).json({
       success: true,
-      message: "Series updated successfully",
+      message: "Cập nhật thông tin series thành công",
       data: updatedSeries,
     });
   } catch (error) {

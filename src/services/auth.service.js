@@ -107,7 +107,7 @@ const refreshToken = async (token) => {
 
 const logout = async (refreshToken) => {
   if (!refreshToken) {
-    const error = new Error("No token provided");
+    const error = new Error("Chưa cung cấp Refresh Token");
     error.statusCode = 400;
     throw error;
   }
@@ -117,7 +117,7 @@ const logout = async (refreshToken) => {
   const user = await User.findById(decoded.id);
 
   if (!user || user.refreshToken !== refreshToken) {
-    const error = new Error("Invalid token");
+    const error = new Error("Token không hợp lệ");
     error.statusCode = 400;
     throw error;
   }
@@ -126,7 +126,7 @@ const logout = async (refreshToken) => {
   user.refreshToken = null;
   await user.save();
 
-  return { message: "Logout successful" };
+  return { message: "Đăng xuất thành công" };
 };
 
 const requestResetPassword = async (email, frontendUrl) => {

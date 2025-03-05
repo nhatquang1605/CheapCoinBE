@@ -16,6 +16,7 @@ const addToCart = async (req, res) => {
     const cart = await cartService.addToCart(userId, seriesId, quantity, type);
     res.status(200).json({ message: "Thêm vào giỏ hàng thành công!", cart });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     res
       .status(500)
       .json({ message: "Lỗi khi thêm vào giỏ hàng!", error: error.message });
@@ -33,6 +34,7 @@ const getCart = async (req, res) => {
 
     res.status(200).json(cart);
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     res
       .status(500)
       .json({ message: "Lỗi khi lấy giỏ hàng!", error: error.message });
@@ -66,6 +68,7 @@ const updateCartItem = async (req, res) => {
 
     res.status(200).json({ message: "Cập nhật giỏ hàng thành công!", cart });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     res
       .status(500)
       .json({ message: "Lỗi khi cập nhật giỏ hàng!", error: error.message });
@@ -87,6 +90,7 @@ const removeCartItem = async (req, res) => {
       .status(200)
       .json({ message: "Xóa sản phẩm khỏi giỏ hàng thành công!", cart });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     res
       .status(500)
       .json({ message: "Lỗi khi xóa sản phẩm!", error: error.message });

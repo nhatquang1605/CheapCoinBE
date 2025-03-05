@@ -16,6 +16,7 @@ const createOrder = async (req, res) => {
       result,
     });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
@@ -26,8 +27,9 @@ const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.id;
     const orders = await orderService.getUserOrders(userId);
-    res.json({ orders });
+    res.status(200).json({ message: "Xem order của user thành công", orders });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     res.status(400).json({ message: error.message });
   }
 };
@@ -40,8 +42,11 @@ const getOrderDetail = async (req, res) => {
     // Gọi service để lấy order
     const order = await orderService.getOrderById(orderId, userId);
 
-    res.status(200).json(order);
+    res
+      .status(200)
+      .json({ message: "Xem thông tin của order thành công", order });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     res.status(403).json({ error: error.message });
   }
 };
@@ -54,29 +59,10 @@ const cancelOrder = async (req, res) => {
     // Gọi service để hủy order
     const order = await orderService.cancelOrder(orderId, userId);
 
-    res.status(200).json({ message: "Order cancelled successfully", order });
+    res.status(200).json({ message: "Hủy order thành công", order });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     res.status(403).json({ error: error.message });
-  }
-};
-
-const payOrder = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const result = await orderService.payOrder(orderId);
-    return res.status(200).json({ message: "Thanh toán thành công", result });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-const refundOrder = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const result = await orderService.refundOrder(orderId);
-    return res.status(200).json({ message: "Hoàn tiền thành công", result });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -89,6 +75,7 @@ const updateShippingStatus = async (req, res) => {
       .status(200)
       .json({ message: "Cập nhật trạng thái giao hàng", result });
   } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -96,18 +83,22 @@ const updateShippingStatus = async (req, res) => {
 const getPendingShipments = async (req, res) => {
   try {
     const result = await orderService.getPendingShipments();
-    return res.status(200).json({ orders: result });
+    return res
+      .status(200)
+      .json({
+        message: "Lấy danh sách đơn hàng chưa ship thành công",
+        orders: result,
+      });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
+
 module.exports = {
   createOrder,
   getUserOrders,
   getOrderDetail,
   cancelOrder,
-  payOrder,
-  refundOrder,
   updateShippingStatus,
   getPendingShipments,
 };

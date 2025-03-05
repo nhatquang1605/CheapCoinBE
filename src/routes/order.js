@@ -7,9 +7,6 @@ router.post("/create", verifyToken, orderController.createOrder);
 router.get("/", verifyToken, orderController.getUserOrders);
 router.get("/:orderId", verifyToken, orderController.getOrderDetail);
 router.put("/:orderId/cancel", verifyToken, orderController.cancelOrder);
-// Xử lý thanh toán
-router.put("/:orderId/pay", verifyToken, orderController.payOrder);
-router.post("/:orderId/refund", verifyToken, orderController.refundOrder);
 // Xử lý giao hàng
 router.put(
   "/:orderId/shipping-status",

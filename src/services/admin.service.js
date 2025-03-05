@@ -3,16 +3,8 @@ const User = require("../models/user.model");
 const Series = require("../models/series.model");
 const OrderItem = require("../models/orderItem.model");
 
-// 📌 API 1: Tổng quan trong tháng
-const getOverview = async (month, year) => {
-  // Nếu không truyền month/year, lấy tháng và năm hiện tại
-  const today = new Date();
-  month = month || today.getMonth() + 1; // Vì getMonth() trả về 0-11
-  year = year || today.getFullYear();
-
-  const startDate = new Date(`${year}-${month}-01`);
-  const endDate = new Date(`${year}-${month + 1}-01`);
-
+// Tổng quan trong tháng
+const getOverview = async (startDate, endDate) => {
   // Tổng doanh thu, số lượng đơn hàng, số lượng box bán ra, khách hàng mới
   const totalRevenue = await Order.aggregate([
     {
@@ -49,14 +41,8 @@ const getOverview = async (month, year) => {
   };
 };
 
-// 📌 API 2: Doanh thu theo năm
-const getYearlyRevenue = async (year) => {
-  const today = new Date();
-  year = year || today.getFullYear();
-
-  const startDate = new Date(`${year}-01-01`);
-  const endDate = new Date(`${year + 1}-01-01`);
-
+// Doanh thu theo năm
+const getYearlyRevenue = async (startDate, endDate) => {
   const revenueByMonth = await Order.aggregate([
     {
       $match: { createdAt: { $gte: startDate, $lt: endDate }, status: "done" },
@@ -97,7 +83,7 @@ const getYearlyRevenue = async (year) => {
   };
 };
 
-// 📌 API 3: Top series bán chạy
+// Top series bán chạy
 const getTopSellingSeries = async () => {
   try {
     // 🔹 Bước 1: Lọc chỉ các OrderItems thuộc Order có `paymentStatus: "paid"`
@@ -195,4 +181,5 @@ const getTopSellingSeries = async () => {
     throw error;
   }
 };
+
 module.exports = { getOverview, getYearlyRevenue, getTopSellingSeries };

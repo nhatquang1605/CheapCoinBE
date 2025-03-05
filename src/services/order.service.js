@@ -116,11 +116,7 @@ const updateShippingStatus = async (orderId, status) => {
   if (!order) throw new Error("Không tìm thấy đơn hàng");
 
   order.shippingStatus = status;
-
-  // Nếu hàng đã giao thành công và đã thanh toán, đổi trạng thái đơn hàng thành 'done'
-  if (status === "delivered" && order.paymentStatus === "paid") {
-    order.status = "done";
-  }
+  order.status = "done";
 
   await order.save();
   return order;
@@ -155,12 +151,6 @@ const handlePayosWebhook = async (orderCode, paymentStatus) => {
 
   await order.save();
 };
-
-const updateOrderCode = async (orderId, orderCode) => {
-  const order = await Order.findById(orderId);
-  order.orderCode = orderCode;
-  await order.save();
-};
 module.exports = {
   createOrder,
   getUserOrders,
@@ -170,5 +160,4 @@ module.exports = {
   getPendingShipments,
   handlePayosWebhook,
   getOrderByOrderCode,
-  updateOrderCode,
 };

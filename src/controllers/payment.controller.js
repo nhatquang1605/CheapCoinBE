@@ -65,7 +65,7 @@ const getPaymentLinkInformation = async (req, res) => {
 
     const paymentLink = await payOS.getPaymentLinkInformation(orderCode);
 
-    res.status(200).json({ success: true, data: paymentLink });
+    res.status(200).json({ data: paymentLink });
   } catch (error) {
     console.error("Full error stack:", error.stack || error.message);
     res.status(404).json({ success: false, message: error.message });
@@ -80,7 +80,7 @@ const handlePayOSWebhook = async (req, res) => {
     const { orderCode, status } = req.query;
 
     if (!orderCode || !status) {
-      return res.status(400).json({ message: "Missing orderCode or status" });
+      return res.status(400).json({ message: "Thiếu orderCode hoặc status" });
     }
 
     // Cập nhật trạng thái đơn hàng
