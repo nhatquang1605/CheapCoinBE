@@ -17,6 +17,10 @@ cron.schedule("0 0 * * *", () => {
   console.log("Running job: Update 'isNew' field for Series...");
   updateIsNew();
 });
+// Giữ process luôn chạy (tránh bị Render kill)
+setInterval(() => {
+  console.log("Keeping process alive...");
+}, 1000 * 60 * 10); // 10 phút log 1 lần
 // Kết nối MongoDB
 connectDB();
 initRoute(app);
