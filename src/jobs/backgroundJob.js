@@ -27,12 +27,4 @@ const updateIsNew = async () => {
   }
 };
 
-// Chỉ chạy job nếu file này được gọi trực tiếp
-if (require.main === module) {
-  updateIsNew().then(() => {
-    console.log("✅ Job completed.");
-    process.exit(0); // Đóng process sau khi chạy xong
-  });
-}
-
 module.exports = updateIsNew;

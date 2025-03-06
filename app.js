@@ -13,29 +13,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Biến kiểm tra job đã chạy chưa (trong ngày)
-let lastRunDate = null;
-
 // Kết nối MongoDB & routes
 connectDB();
 initRoute(app);
 
-// Chạy job vào 12h đêm mỗi ngày (chỉ chạy nếu chưa chạy trong ngày)
-cron.schedule("0 0 * * *", async () => {
-  const today = new Date().toISOString().split("T")[0]; // Lấy ngày hiện tại (YYYY-MM-DD)
-
-  if (lastRunDate === today) {
-    console.log("Job already ran today. Skipping...");
-    return;
-  }
-
-  console.log("Running job: Update 'isNew' field for Series...");
+// Chạy job mỗi 5 phút để test (thay vì mỗi ngày)
+cron.schedule("*/5 * * * *", async () => {
+  console.log("🚀 Running job: Update 'isNew' field for Series...");
   try {
     await updateIsNew();
-    console.log("Job completed successfully");
-    lastRunDate = today; // Cập nhật ngày chạy cuối cùng
+    console.log("✅ Job completed successfully");
   } catch (error) {
-    console.error("Job failed:", error);
+    console.error("❌ Job failed:", error);
   }
 });
 
