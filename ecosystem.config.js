@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "CheapCoin", // (1) Tên ứng dụng API
       script: "app.js", // (2) File chính của API
-      instances: "max", // (3) Dùng tất cả CPU để tối ưu API
+      instances: "1", // (3) Dùng tất cả CPU để tối ưu API
       exec_mode: "cluster", // (4) Chạy API ở chế độ cluster
       watch: true, // Theo dõi thay đổi và restart tự động (dùng trong dev)
       autorestart: true, // Tự động restart nếu API bị crash
