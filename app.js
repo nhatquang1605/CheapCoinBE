@@ -3,10 +3,10 @@ const cors = require("cors");
 const connectDB = require("./src/config/database");
 const initRoute = require("./src/routes/index");
 const cron = require("node-cron");
-const updateIsNew = require("./src/jobs/updateIsNewJob"); // Import job
+const updateIsNew = require("./src/jobs/backgroundJob"); // Import job
 
 const app = express(); // Khởi tạo ứng dụng Express
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());

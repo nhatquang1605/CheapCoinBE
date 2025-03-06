@@ -21,10 +21,6 @@ router.get("/", paginationMiddleware, seriesController.getAll);
 router.delete("/:id", seriesController.deleteSeries);
 
 //edit
-router.put(
-  "/:id",
-  uploader.single("representativeImage"),
-  seriesController.updateSeries
-);
+router.put("/:id", uploader.array("imageUrls"), seriesController.updateSeries);
 
 module.exports = router;

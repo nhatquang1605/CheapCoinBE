@@ -116,6 +116,7 @@ const updateShippingStatus = async (orderId, status) => {
   if (!order) throw new Error("Không tìm thấy đơn hàng");
 
   order.shippingStatus = status;
+  order.paymentStatus = "paid";
   order.status = "done";
 
   await order.save();
@@ -151,6 +152,7 @@ const handlePayosWebhook = async (orderCode, paymentStatus) => {
 
   await order.save();
 };
+
 module.exports = {
   createOrder,
   getUserOrders,
