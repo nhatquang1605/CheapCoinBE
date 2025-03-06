@@ -17,8 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 connectDB();
 initRoute(app);
 
-// Chạy job mỗi 5 phút để test (thay vì mỗi ngày)
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
   console.log("🚀 Running job: Update 'isNew' field for Series...");
   try {
     await updateIsNew();
