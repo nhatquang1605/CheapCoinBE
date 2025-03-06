@@ -5,25 +5,44 @@ const initRoute = require("./src/routes/index");
 const cron = require("node-cron");
 const updateIsNew = require("./src/jobs/backgroundJob"); // Import job
 
-const app = express(); // Khởi tạo ứng dụng Express
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Middleware xử lý JSON
-app.use(express.urlencoded({ extended: true })); // Middleware xử lý form-urlencoded
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-cron.schedule("0 0 * * *", () => {
+// Biến kiểm tra job đã chạy chưa (trong ngày)
+let lastRunDate = null;
+
+// Kết nối MongoDB & routes
+connectDB();
+initRoute(app);
+
+// Chạy job vào 12h đêm mỗi ngày (chỉ chạy nếu chưa chạy trong ngày)
+cron.schedule("0 0 * * *", async () => {
+  const today = new Date().toISOString().split("T")[0]; // Lấy ngày hiện tại (YYYY-MM-DD)
+
+  if (lastRunDate === today) {
+    console.log("Job already ran today. Skipping...");
+    return;
+  }
+
   console.log("Running job: Update 'isNew' field for Series...");
-  updateIsNew();
+  try {
+    await updateIsNew();
+    console.log("Job completed successfully");
+    lastRunDate = today; // Cập nhật ngày chạy cuối cùng
+  } catch (error) {
+    console.error("Job failed:", error);
+  }
 });
+
 // Giữ process luôn chạy (tránh bị Render kill)
 setInterval(() => {
   console.log("Keeping process alive...");
-}, 1000 * 60 * 10); // 10 phút log 1 lần
-// Kết nối MongoDB
-connectDB();
-initRoute(app);
+}, 1000 * 60 * 10); // Log mỗi 10 phút
 
 // Chạy server
 app.listen(PORT, () => {
