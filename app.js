@@ -7,6 +7,7 @@ const updateIsNew = require("./src/jobs/backgroundJob"); // Import job
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const PING_URL = "https://cheapcoinbe.onrender.com/api/v1/seri/?page=1&limit=5";
 
 // Middleware
 app.use(cors());
@@ -24,6 +25,16 @@ cron.schedule("0 0 * * *", async () => {
     console.log("✅ Job completed successfully");
   } catch (error) {
     console.error("❌ Job failed:", error);
+  }
+});
+
+// Gửi request mỗi 5 phút
+cron.schedule("*/5 * * * *", async () => {
+  try {
+    const res = await axios.get(PING_URL);
+    console.log("Ping thành công:", res.data);
+  } catch (error) {
+    console.error("Lỗi khi ping server:", error.message);
   }
 });
 

@@ -22,8 +22,7 @@ const createPaymentLink = async (req, res) => {
 
     // Nếu đã có orderCode thì tạo lại orderCode mới
     if (order.orderCode != null) {
-      order.orderCode = Math.floor(Math.random() * 9007199254740991);
-      await orderService.updateOrderCode(order.id, order.orderCode);
+      await orderService.updateOrderCode(order.id);
     }
 
     // 📌 Tạo danh sách sản phẩm

@@ -55,6 +55,20 @@ const createOrder = async (userId, paymentMethod, shippingAddress) => {
   return order;
 };
 
+const updateOrderCode = async (orderId) => {
+  const orderCode = Math.floor(Math.random() * 9007199254740991);
+  const result = await Order.findByIdAndUpdate(
+    orderId,
+    {
+      orderCode,
+    },
+    { new: true }
+  );
+  if (!result) {
+    throw new Error("Order này không tồn tại");
+  }
+};
+
 const getUserOrders = async (userId) => {
   return await Order.find({ userId })
     .populate("orderItems")
