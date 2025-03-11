@@ -176,4 +176,5 @@ module.exports = {
   getPendingShipments,
   handlePayosWebhook,
   getOrderByOrderCode,
+  updateOrderCode,
 };
