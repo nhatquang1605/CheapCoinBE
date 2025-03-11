@@ -3,6 +3,7 @@ const cors = require("cors");
 const connectDB = require("./src/config/database");
 const initRoute = require("./src/routes/index");
 const cron = require("node-cron");
+const axios = require("axios");
 const updateIsNew = require("./src/jobs/backgroundJob"); // Import job
 
 const app = express();
