@@ -14,6 +14,8 @@ const createPaymentLink = async (req, res) => {
     const { orderId } = req.body;
     const userId = req.user.id;
 
+    const descriptionBody = "payment to Cheap Coin";
+
     // Lấy thông tin đơn hàng
     const order = await orderService.getOrderById(orderId, userId);
     if (!order) {
@@ -30,16 +32,17 @@ const createPaymentLink = async (req, res) => {
       name: e.productName,
       quantity: e.quantity,
       price: e.productPrice,
+      type: e.type,
     }));
 
     // 📌 Dữ liệu gửi lên PayOS
     const body = {
       orderCode: order.orderCode,
       amount: order.totalPrice,
-      description: "payment to Cheap Coin",
+      description: descriptionBody,
       items: arrayItem,
-      cancelUrl: "http://localhost:3000",
-      returnUrl: "http://localhost:5000/api/v1/payment/webhook/payos",
+      cancelUrl: process.env.PAYOS_CANCEL_URL,
+      returnUrl: process.env.PAYOS_RETURN_URL,
     };
 
     // 📌 Gửi request tạo link thanh toán
@@ -71,10 +74,8 @@ const getPaymentLinkInformation = async (req, res) => {
   }
 };
 
-const handlePayOSWebhook = async (req, res) => {
+const handlePayOSWebhookSuccess = async (req, res) => {
   try {
-    console.log("Webhook received:", req.query);
-
     // Lấy orderCode từ query params
     const { orderCode, status } = req.query;
 
@@ -85,7 +86,16 @@ const handlePayOSWebhook = async (req, res) => {
     // Cập nhật trạng thái đơn hàng
     await orderService.handlePayosWebhook(orderCode, status);
 
-    return res.status(200).json({ message: "Webhook xử lý thành công" });
+    return res.redirect(process.env.PAYOS_RETURN_URL_FE);
+  } catch (error) {
+    console.error("Webhook processing error:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const handlePayOSWebhookFail = async (req, res) => {
+  try {
+    return res.redirect(process.env.PAYOS_CANCEL_URL_FE);
   } catch (error) {
     console.error("Webhook processing error:", error.message);
     return res.status(500).json({ error: error.message });
@@ -95,5 +105,6 @@ const handlePayOSWebhook = async (req, res) => {
 module.exports = {
   createPaymentLink,
   getPaymentLinkInformation,
-  handlePayOSWebhook,
+  handlePayOSWebhookSuccess,
+  handlePayOSWebhookFail,
 };

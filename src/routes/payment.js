@@ -17,7 +17,13 @@ router.get(
   paymentController.getPaymentLinkInformation
 );
 
-// Webhook nhận phản hồi từ PayOS
-router.post("/webhook/payos", paymentController.handlePayOSWebhook);
+// Webhook nhận phản hồi từ PayOS thành công
+router.post(
+  "/webhook/payos/success",
+  paymentController.handlePayOSWebhookSuccess
+);
+
+// Webhook nhận phản hồi từ PayOS thất bại
+router.post("/webhook/payos/fail", paymentController.handlePayOSWebhookFail);
 
 module.exports = router;
