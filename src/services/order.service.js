@@ -46,7 +46,12 @@ for (let item of cart.items) {
     });
 
     await orderItem.save();
-    totalPrice += item.seriesId.price * item.quantity;
+    if (item.type === "set") {
+      totalPrice +=
+        item.seriesId.price * item.quantity * item.seriesId.totalCharacters;
+    } else {
+      totalPrice += item.seriesId.price * item.quantity;
+    }
 
     orderItems.push(orderItem._id); // Thêm ID của OrderItem vào
   }
@@ -61,6 +66,17 @@ for (let item of cart.items) {
   // Xóa giỏ hàng sau khi tạo đơn hàng
   await Cart.findOneAndDelete({ userId });
 
+  return order;
+};
+
+const updateOrderCode = async (orderId, orderCode) => {
+  const order = await Order.findById(orderId);
+  if (!order) throw new Error("Không tìm thấy đơn hàng");
+  if (orderCode > 9007199254740991) {
+    throw new Error("orderCode vượt quá giới hạn cho phép");
+  }
+  order.orderCode = orderCode;
+  await order.save();
   return order;
 };
 
@@ -148,8 +164,12 @@ const handlePayosWebhook = async (orderCode, paymentStatus) => {
     // 🔥 Cập nhật số lượng sản phẩm 🔥
     for (const item of order.orderItems) {
       const product = await Series.findById(item.productId);
+      const realQuantity =
+        item.type === "set"
+          ? item.quantity * product.totalCharacters
+          : item.quantity;
       if (product) {
-        product.quantity -= item.quantity;
+        product.quantity -= realQuantity;
         await product.save();
       }
     }

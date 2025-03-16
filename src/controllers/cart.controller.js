@@ -46,9 +46,11 @@ const updateCartItem = async (req, res) => {
     const { seriesId, quantity, type } = req.body;
     const userId = req.user.id;
 
-    const quantitySeries = await seriesService.getSeriesById(seriesId);
+    const series = await seriesService.getSeriesById(seriesId);
+    const realQuantity =
+      type === "set" ? quantity * series.totalCharacters : quantity;
 
-    if (quantitySeries.quantity < quantity) {
+    if (series.quantity < realQuantity) {
       return res.status(400).json({
         message:
           "Chỉ còn lại " + quantitySeries.quantity + " sản phẩm này trong kho",
@@ -79,8 +81,8 @@ const removeCartItem = async (req, res) => {
   try {
     const { seriesId } = req.params;
     const userId = req.user.id;
-    const { type } = req.body; // hải thêm dòng này vào
-    const cart = await cartService.removeCartItem(userId, seriesId, type); // hải thêm type vào
+    const { type } = req.body;
+    const cart = await cartService.removeCartItem(userId, seriesId, type);
     if (!cart)
       return res
         .status(404)
