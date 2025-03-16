@@ -35,12 +35,12 @@ const updateCartItem = async (userId, seriesId, quantity, type) => {
   return await cart.save();
 };
 
-const removeCartItem = async (userId, seriesId) => {
+const removeCartItem = async (userId, seriesId, type) => {
   const cart = await Cart.findOne({ userId });
   if (!cart) return null;
 
   cart.items = cart.items.filter(
-    (item) => item.seriesId.toString() !== seriesId
+    (item) => !(item.seriesId.toString() === seriesId && item.type === type)
   );
   return await cart.save();
 };

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 const COLLECTION_NAME = "Orders";
 
 const OrderSchema = new mongoose.Schema(
@@ -50,7 +51,7 @@ const OrderSchema = new mongoose.Schema(
 
 OrderSchema.pre("save", async function (next) {
   if (!this.orderCode) {
-    this.orderCode = Math.floor(Math.random() * 9007199254740991); // Random số hợp lệ
+    this.orderCode = crypto.randomInt(1, 9007199254740991); // Random số hợp lệ
   }
   next();
 });

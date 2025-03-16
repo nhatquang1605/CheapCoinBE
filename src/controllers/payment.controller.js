@@ -24,14 +24,15 @@ const createPaymentLink = async (req, res) => {
 
     // Nếu đã có orderCode thì tạo lại orderCode mới
     if (order.orderCode != null) {
-      await orderService.updateOrderCode(order.id);
+      order.orderCode = crypto.randomInt(1, 9007199254740991);
+      await orderService.updateOrderCode(order._id, order.orderCode);
     }
 
     // 📌 Tạo danh sách sản phẩm
     const arrayItem = order.orderItems.map((e) => ({
       name: e.productName,
       quantity: e.quantity,
-      price: e.productPrice,
+      price: e.type === "set" ? e.price * 6 : e.price,
       type: e.type,
     }));
 

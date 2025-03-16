@@ -60,18 +60,15 @@ const createOrder = async (userId, paymentMethod, shippingAddress) => {
   return order;
 };
 
-const updateOrderCode = async (orderId) => {
-  const orderCode = Math.floor(Math.random() * 9007199254740991);
-  const result = await Order.findByIdAndUpdate(
-    orderId,
-    {
-      orderCode,
-    },
-    { new: true }
-  );
-  if (!result) {
-    throw new Error("Order này không tồn tại");
+const updateOrderCode = async (orderId, orderCode) => {
+  const order = await Order.findById(orderId);
+  if (!order) throw new Error("Không tìm thấy đơn hàng");
+  if (orderCode > 9007199254740991) {
+    throw new Error("orderCode vượt quá giới hạn cho phép");
   }
+  order.orderCode = orderCode;
+  await order.save();
+  return order;
 };
 
 const getUserOrders = async (userId) => {
