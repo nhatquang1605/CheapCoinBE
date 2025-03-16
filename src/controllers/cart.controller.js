@@ -79,8 +79,8 @@ const removeCartItem = async (req, res) => {
   try {
     const { seriesId } = req.params;
     const userId = req.user.id;
-
-    const cart = await cartService.removeCartItem(userId, seriesId);
+    const { type } = req.body; // hải thêm dòng này vào
+    const cart = await cartService.removeCartItem(userId, seriesId, type); // hải thêm type vào
     if (!cart)
       return res
         .status(404)
