@@ -10,6 +10,15 @@ const createOrder = async (userId, paymentMethod, shippingAddress) => {
   if (!cart || cart.items.length === 0) {
     throw new Error("Giỏ hàng trống!");
   }
+// Check if seriesId is properly populated for all items
+for (let item of cart.items) {
+  if (!item.seriesId || typeof item.seriesId !== 'object') {
+    console.error("Item has invalid seriesId:", item);
+    throw new Error(`Invalid seriesId for item: ${JSON.stringify(item)}`);
+  }
+} 
+
+
 
   // Tạo đơn hàng trước để lấy orderId
   const order = new Order({
@@ -64,12 +73,10 @@ const getUserOrders = async (userId) => {
 const getOrderById = async (orderId, userId) => {
   // Tìm order theo ID
   const order = await Order.findById(orderId).populate("orderItems");
-
   // Nếu không tìm thấy order, trả về lỗi
   if (!order) {
     throw new Error("Bạn đã order chưa mà sao không có nhỉ?");
   }
-
   // Kiểm tra xem userId có trùng với userId của order không
   if (order.userId.toString() !== userId) {
     throw new Error("Cái này không phải của bạn đâu!");
@@ -92,7 +99,7 @@ const cancelOrder = async (orderId, userId) => {
   }
 
   // Kiểm tra order có thuộc về user hiện tại không
-  if (order.userId.toString() !== userId) {
+  if (order.userId.toString() !== userId.toString()) { // hải thêm .toString() sau userid
     throw new Error("Unauthorized access");
   }
 
@@ -152,6 +159,17 @@ const handlePayosWebhook = async (orderCode, paymentStatus) => {
 
   await order.save();
 };
+//hàm updateOrderCode là hải thêm vào
+const updateOrderCode = async (orderId, orderCode) => {
+  const order = await Order.findById(orderId);
+  if (!order) throw new Error("Không tìm thấy đơn hàng");
+  if (orderCode > 9007199254740991) {
+    throw new Error("orderCode vượt quá giới hạn cho phép");
+  }
+  order.orderCode = orderCode;
+  await order.save();
+  return order;
+};
 
 module.exports = {
   createOrder,
@@ -162,4 +180,5 @@ module.exports = {
   getPendingShipments,
   handlePayosWebhook,
   getOrderByOrderCode,
+  updateOrderCode,
 };

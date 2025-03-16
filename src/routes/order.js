@@ -19,4 +19,9 @@ router.get(
   orderController.getPendingShipments
 );
 
+
+// Thêm routes cho Admin hải thêm vào
+router.get("/admin/all", verifyToken, orderController.getAllOrders);
+router.put("/admin/:orderId/status", verifyToken, orderController.updateOrderStatus);
+router.get("/admin/analytics", verifyToken, orderController.getOrderAnalytics);
 module.exports = router;
