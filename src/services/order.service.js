@@ -173,17 +173,7 @@ const handlePayosWebhook = async (orderCode, paymentStatus) => {
 
   await order.save();
 };
-//hàm updateOrderCode là hải thêm vào
-const updateOrderCode = async (orderId, orderCode) => {
-  const order = await Order.findById(orderId);
-  if (!order) throw new Error("Không tìm thấy đơn hàng");
-  if (orderCode > 9007199254740991) {
-    throw new Error("orderCode vượt quá giới hạn cho phép");
-  }
-  order.orderCode = orderCode;
-  await order.save();
-  return order;
-};
+
 
 module.exports = {
   createOrder,
