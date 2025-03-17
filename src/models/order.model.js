@@ -51,7 +51,7 @@ const OrderSchema = new mongoose.Schema(
 
 OrderSchema.pre("save", async function (next) {
   if (!this.orderCode) {
-    this.orderCode = crypto.randomInt(1, 9007199254740991); // Random số hợp lệ
+    this.orderCode = crypto.randomInt(1, 281474976710655); // Random số hợp lệ
   }
   next();
 });
