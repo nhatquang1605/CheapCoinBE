@@ -7,12 +7,12 @@ const addToCart = async (userId, seriesId, quantity, type) => {
     cart = new Cart({ userId, items: [{ seriesId, quantity, type }] });
   } else {
     const existingItem = cart.items.find(
-      (item) => item.seriesId.toString() === seriesId
+      (item) => item.seriesId.toString() === seriesId && item.type === type //hải thêm && item.type === type
     );
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
-      cart.items.push({ seriesId, quantity });
+      cart.items.push({ seriesId, quantity, type }); //hai them type vao
     }
   }
 

@@ -7,6 +7,7 @@ const order = require("./order");
 const seri = require("./series");
 const cart = require("./cart");
 const payment = require("./payment");
+const productSold = require("./productSold"); //hải Thêm dòng này
 // const story = require("./story");
 // const user = require("./user");
 
@@ -19,6 +20,7 @@ const initRoute = (app) => {
   app.use("/api/v1/seri", seri);
   app.use("/api/v1/cart", cart);
   app.use("/api/v1/payment", payment);
+  app.use("/api/v1/product-sold", productSold); // hải Thêm dòng này
   // app.use("/api/v1/story", story);
   // app.use("/api/v1/user", user);
   app.use(notFound);
