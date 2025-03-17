@@ -18,7 +18,6 @@ const getAllSoldProducts = async (req, res) => {
 const getSoldProductAnalytics = async (req, res) => {
   try {
     const analytics = await productSoldService.getSoldProductAnalytics();
-
     return res.status(200).json({
       message: "Lấy dữ liệu thống kê sản phẩm đã bán thành công",
       analytics,
