@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const orderController = require("../controllers/order.controller");
-const { verifyToken } = require("../middleware/auth");
+const { verifyToken, adminMiddleware } = require("../middleware/auth");
 
 router.post("/create", verifyToken, orderController.createOrder);
 router.get("/", verifyToken, orderController.getUserOrders);
-router.get("/:orderId", verifyToken, orderController.getOrderDetail);
+router.get(
+  "/:orderId",
+  verifyToken,
+  adminMiddleware,
+  orderController.getOrderDetail
+);
 router.put("/:orderId/cancel", verifyToken, orderController.cancelOrder);
 // Xử lý giao hàng
 router.put(
@@ -19,9 +24,12 @@ router.get(
   orderController.getPendingShipments
 );
 
-
 // Thêm routes cho Admin hải thêm vào
 router.get("/admin/all", verifyToken, orderController.getAllOrders);
-router.put("/admin/:orderId/status", verifyToken, orderController.updateOrderStatus);
+router.put(
+  "/admin/:orderId/status",
+  verifyToken,
+  orderController.updateOrderStatus
+);
 router.get("/admin/analytics", verifyToken, orderController.getOrderAnalytics);
 module.exports = router;

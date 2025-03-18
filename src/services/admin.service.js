@@ -1,6 +1,5 @@
 const Order = require("../models/order.model");
 const User = require("../models/user.model");
-const Series = require("../models/series.model");
 const OrderItem = require("../models/orderItem.model");
 
 // Tổng quan trong tháng
@@ -182,4 +181,18 @@ const getTopSellingSeries = async () => {
   }
 };
 
-module.exports = { getOverview, getYearlyRevenue, getTopSellingSeries };
+const getUserByAdmin = async () => {
+  try {
+    return await User.find({ role: "Customer" });
+  } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  getOverview,
+  getYearlyRevenue,
+  getTopSellingSeries,
+  getUserByAdmin,
+};

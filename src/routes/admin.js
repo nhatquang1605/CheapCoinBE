@@ -23,4 +23,10 @@ router.get(
   adminController.getTopSellingSeries
 );
 
+router.get(
+  "/dashboard/user",
+  verifyToken,
+  adminMiddleware,
+  adminController.getUserByAdmin
+);
 module.exports = router;

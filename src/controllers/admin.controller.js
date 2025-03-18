@@ -53,4 +53,22 @@ const getTopSellingSeries = async (req, res) => {
   }
 };
 
-module.exports = { getOverview, getYearlyRevenue, getTopSellingSeries };
+const getUserByAdmin = async (req, res) => {
+  try {
+    const data = await adminService.getUserByAdmin();
+    res.status(200).json({
+      message: "Lấy những user là customer thành công",
+      data,
+    });
+  } catch (error) {
+    console.error("Full error stack:", error.stack || error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  getOverview,
+  getYearlyRevenue,
+  getTopSellingSeries,
+  getUserByAdmin,
+};
