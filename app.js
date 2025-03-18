@@ -29,20 +29,16 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-// Gửi request mỗi 5 phút
-cron.schedule("*/5 * * * *", async () => {
-  try {
-    const res = await axios.get(PING_URL);
-    console.log("Ping thành công:", res.data);
-  } catch (error) {
-    console.error("Lỗi khi ping server:", error.message);
-  }
+app.get("/ping", (req, res) => {
+  res.status(200).json({ message: "Server is running!" });
 });
 
 // Giữ process luôn chạy (tránh bị Render kill)
 setInterval(() => {
-  console.log("Keeping process alive...");
-}, 1000 * 60 * 10); // Log mỗi 10 phút
+  fetch(PING_URL)
+    .then((res) => console.log(`Ping status: ${res.status}`))
+    .catch((err) => console.error("Ping failed:", err));
+}, 5 * 60 * 1000); // Gửi request mỗi 5 phút
 
 // Chạy server
 app.listen(PORT, () => {

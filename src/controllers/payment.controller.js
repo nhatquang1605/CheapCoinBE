@@ -18,11 +18,9 @@ const createPaymentLink = async (req, res) => {
 
     // Lấy thông tin đơn hàng
     const order = await orderService.getOrderById(orderId, userId);
-    console.log("ordercode", order.orderCode);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
-    console.log("Order received in createPaymentLink:", order);
     // Nếu đã có orderCode thì tạo lại orderCode mới
     if (order.orderCode != null) {
       order.orderCode = crypto.randomInt(1, 281474976710655);
@@ -33,7 +31,7 @@ const createPaymentLink = async (req, res) => {
     const arrayItem = order.orderItems.map((e) => ({
       name: e.productName,
       quantity: e.quantity,
-      price: e.type === "set" ? e.price * 6 : e.price,
+      price: e.type === "set" ? e.productPrice * 6 : e.productPrice,
       type: e.type,
     }));
 
@@ -45,7 +43,6 @@ const createPaymentLink = async (req, res) => {
         price: order.totalPrice,
       });
     }
-
     // 📌 Dữ liệu gửi lên PayOS
     const body = {
       orderCode: order.orderCode,
