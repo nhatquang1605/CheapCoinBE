@@ -22,9 +22,28 @@ const getOverview = async (startDate, endDate) => {
     {
       $match: { createdAt: { $gte: startDate, $lt: endDate }, status: "done" },
     },
-    { $unwind: "$orderItems" },
     {
-      $group: { _id: null, boxesSold: { $sum: 1 } },
+      $lookup: {
+        from: "orderitems", // Tên collection OrderItem (viết thường nếu MongoDB lưu như vậy)
+        localField: "orderItems",
+        foreignField: "_id",
+        as: "orderItemDetails",
+      },
+    },
+    { $unwind: "$orderItemDetails" }, // Tách từng item trong orderItems
+    {
+      $group: {
+        _id: null,
+        boxesSold: {
+          $sum: {
+            $cond: {
+              if: { $eq: ["$orderItemDetails.type", "set"] },
+              then: { $multiply: ["$orderItemDetails.quantity", 6] }, // Nếu là "set", nhân 6
+              else: "$orderItemDetails.quantity", // Nếu không, cộng quantity bình thường
+            },
+          },
+        },
+      },
     },
   ]);
 
@@ -85,23 +104,36 @@ const getYearlyRevenue = async (startDate, endDate) => {
 // Top series bán chạy
 const getTopSellingSeries = async () => {
   try {
-    // 🔹 Bước 1: Lọc chỉ các OrderItems thuộc Order có `paymentStatus: "paid"`
+    console.log("🔹 Bắt đầu truy vấn top selling series...");
+
+    // 🔹 Bước 1: Lọc OrderItems thuộc Order có `status: "done"`
     const paidOrderItems = await OrderItem.aggregate([
       {
         $lookup: {
-          from: "orders", // Liên kết với bảng Orders
+          from: "orders",
           localField: "_id",
           foreignField: "orderItems",
           as: "orderInfo",
         },
       },
       {
-        $match: { "orderInfo.status": "done" }, // Chỉ lấy đơn đã thanh toán
+        $match: { "orderInfo.status": "done" },
+      },
+      {
+        $addFields: {
+          adjustedQuantity: {
+            $cond: {
+              if: { $eq: ["$type", "set"] },
+              then: { $multiply: ["$quantity", 6] },
+              else: "$quantity",
+            },
+          },
+        },
       },
     ]);
 
     if (!paidOrderItems.length) {
-      return []; // Nếu không có đơn hàng nào, trả về mảng rỗng
+      return [];
     }
 
     // 🔹 Bước 2: Tính tổng số lượng đã bán của tất cả series
@@ -115,12 +147,23 @@ const getTopSellingSeries = async () => {
         },
       },
       {
-        $match: { "orderInfo.status": "done" }, // Chỉ tính đơn đã thanh toán
+        $match: { "orderInfo.status": "done" },
+      },
+      {
+        $addFields: {
+          adjustedQuantity: {
+            $cond: {
+              if: { $eq: ["$type", "set"] },
+              then: { $multiply: ["$quantity", 6] },
+              else: "$quantity",
+            },
+          },
+        },
       },
       {
         $group: {
-          _id: null, // Gom tất cả vào một nhóm duy nhất
-          totalSoldAll: { $sum: "$quantity" }, // Tính tổng số lượng đã bán của tất cả series
+          _id: null,
+          totalSoldAll: { $sum: "$adjustedQuantity" },
         },
       },
     ]);
@@ -140,43 +183,56 @@ const getTopSellingSeries = async () => {
         },
       },
       {
-        $match: { "orderInfo.status": "done" }, // Chỉ lấy đơn đã thanh toán
+        $match: { "orderInfo.status": "done" },
       },
       {
-        $group: {
-          _id: "$productId", // Nhóm theo ID của series
-          totalSold: { $sum: "$quantity" }, // Tính tổng số lượng đã bán
+        $addFields: {
+          adjustedQuantity: {
+            $cond: {
+              if: { $eq: ["$type", "set"] },
+              then: { $multiply: ["$quantity", 6] },
+              else: "$quantity",
+            },
+          },
         },
       },
       {
-        $sort: { totalSold: -1 }, // Sắp xếp theo tổng số lượng bán giảm dần
+        $group: {
+          _id: "$productId",
+          totalSold: { $sum: "$adjustedQuantity" },
+        },
       },
       {
-        $limit: 5, // Chỉ lấy top 5 series
+        $sort: { totalSold: -1 },
+      },
+      {
+        $limit: 5,
       },
       {
         $lookup: {
-          from: "Series", // Lấy thông tin series từ collection Series
+          from: "Series",
           localField: "_id",
           foreignField: "_id",
           as: "seriesInfo",
         },
       },
       {
-        $unwind: "$seriesInfo", // Giải nén mảng seriesInfo
+        $unwind: "$seriesInfo",
       },
       {
         $project: {
-          _id: 1, // ID của series
-          seriesName: "$seriesInfo.name", // Tên series
-          totalSold: 1, // Số lượng đã bán
-          popularity: { $divide: ["$totalSold", totalSoldValue] }, // Tính độ phổ biến
+          _id: 1,
+          seriesName: "$seriesInfo.name",
+          totalSold: 1,
+          popularity: { $divide: ["$totalSold", totalSoldValue] },
         },
       },
     ]);
 
+    console.log("✅ Kết quả cuối cùng:", topSellingSeries);
     return topSellingSeries;
   } catch (error) {
+    console.error("❌ Lỗi khi lấy top selling series:", error);
     throw error;
   }
 };

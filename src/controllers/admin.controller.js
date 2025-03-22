@@ -2,7 +2,7 @@ const adminService = require("../services/admin.service");
 
 const getOverview = async (req, res) => {
   try {
-    const { month, year } = req.query;
+    let { month, year } = req.query;
     // Nếu không truyền month/year, lấy tháng và năm hiện tại
     const today = new Date();
 
